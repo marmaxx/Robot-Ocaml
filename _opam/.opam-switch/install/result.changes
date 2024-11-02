@@ -1,0 +1,19 @@
+opam-version: "2.0"
+added: [
+  "doc/result" {"D"}
+  "doc/result/CHANGES.md" {"F:S253T1729515045.25"}
+  "doc/result/LICENSE.md" {"F:S1536T1729515045.25"}
+  "doc/result/README.md" {"F:S210T1729515045.25"}
+  "lib/result" {"D"}
+  "lib/result/META" {"F:S166T1729515045.24"}
+  "lib/result/dune-package" {"F:S645T1729515045.24"}
+  "lib/result/opam" {"F:S654T1729515045.24"}
+  "lib/result/result.a" {"F:S1936T1729515045.24"}
+  "lib/result/result.cma" {"F:S6361T1729515045.24"}
+  "lib/result/result.cmi" {"F:S3823T1729515045.25"}
+  "lib/result/result.cmt" {"F:S13070T1729515045.25"}
+  "lib/result/result.cmx" {"F:S2269T1729515045.25"}
+  "lib/result/result.cmxa" {"F:S312T1729515045.25"}
+  "lib/result/result.cmxs" {"F:S50648T1729515045.25"}
+  "lib/result/result.ml" {"F:S125T1729515045.25"}
+]

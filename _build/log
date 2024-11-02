@@ -1,0 +1,16 @@
+# dune exec test/test.exe -- test
+# OCAMLPARAM: unset
+# Shared cache: disabled
+# Shared cache location: /Users/user/.cache/dune/db
+# Workspace root: /Users/user/projet-pf5-2425
+# Auto-detected concurrency: 8
+# Dune context:
+#  { name = "default"
+#  ; kind = "default"
+#  ; profile = Dev
+#  ; merlin = true
+#  ; fdo_target_exe = None
+#  ; build_dir = In_build_dir "default"
+#  ; instrument_with = []
+#  }
+$ /Users/user/projet-pf5-2425/_opam/bin/ocamlc.opt -config > /var/folders/pv/nq4t_lms4_72vl2g_fpfj4kh0000gn/T/dune_c687aa_output

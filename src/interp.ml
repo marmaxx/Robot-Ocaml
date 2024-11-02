@@ -8,8 +8,16 @@ type instruction =
 | Either of program * program 
 and program = instruction list
 
-let is_deterministic (prog : program) : bool =
-  failwith "À compléter"
+(* Fonction qui vérifie si le programme en paramètre est déterministe, 
+   i.e. le programme contient au moins une instruction Either *)
+
+let rec is_deterministic (prog : program) : bool =
+  List.for_all has_either_instruction prog (* Applique à chaque élément de la liste prog la fonction has_neither_instruction *)
+and has_either_instruction instr = 
+  match instr with 
+  | Move t -> true
+  | Repeat (number, sub_prog) -> is_deterministic sub_prog (* Récursion pour vérifier si le sous-programme est déterminiset ou non *)
+  | Either _ -> false
 
 let unfold_repeat (prog : program) : program =
   failwith "À compléter"
@@ -28,3 +36,4 @@ let all_choices (prog : program) : program list =
 
 let target_reached (prog : program) (p : point) (r : rectangle) : bool =
   failwith "À compléter"
+  
