@@ -93,8 +93,8 @@ let run (prog : program) (p : point) : point list =
   in
   execute_program unfolded_prog p [p]
 
-(* Fonction qui renvoie toutes les listes possibles de programmes sans Either *)
-let rec all_choices prog =
+(* Fonction qui renvoie la liste de tous les programmes possibles sans Either *)
+let rec all_choices (prog : program) (p : point) : program list =
   let unfolded_prog = unfold_repeat prog in (* On déplie le programme pour ne plus avoir de Repeat *)
   match unfolded_prog with
   | [] -> [[]] 
@@ -112,7 +112,16 @@ let rec all_choices prog =
       let choices_from_rest = all_choices rest in
       List.map (fun choice -> Move t :: choice) choices_from_rest
 
+(* Fonction qui vérifie si chaque exécution possible du programme atteint la cible *)
+let rec target_reached (prog : program) (p : point) (r : rectangle) : bool =
+  let all_prog = all_choices prog in (* On transforme notre programme en une liste de toutes les possibilités *)
+  (* On vérifie pour chaque programme si le robot atteint la cible *)
+  let rec aux list_of_prog point rect =
+    match list_of_prog with
+    | [] -> true 
+    | prog :: rest -> target_reached_det prog p r && aux rest p r
+  in
+  aux all_prog p r
 
-let target_reached (prog : program) (p : point) (r : rectangle) : bool =
-  failwith "À compléter"
-  
+  (* TODO : implémenter plus de tests et gérer le cas particulier de la fonction run *)
+
