@@ -46,7 +46,7 @@ let rec run_det (prog : program) (p : point) : point list =
   let rec execute_program prog current_point visited_points =
     match prog with
     | [] -> List.rev visited_points
-    | Either _ :: _ -> raise EitherEncountered (* Exception levée lorssque l'on rencontre un Either *)
+    | Either _ :: _ -> raise EitherEncountered (* Exception levée lorsque l'on rencontre un Either *)
     | Repeat _ :: _ -> failwith "error in unfold_repeat" (* Inutile mais doit être présent sinon problème à la compilation *)
     | Move t :: rest ->
         let new_point =
@@ -68,8 +68,31 @@ let rec run_det (prog : program) (p : point) : point list =
     in
   in_rectangle target last_point (* On vérifie si ce point est dans le rectangle cible ou non *)
   
+(* FIN DU PREMIER JALON *)
+
+(* Fonction simulant une exécution possible d'un programme quelconque *)
 let run (prog : program) (p : point) : point list =
-  failwith "À compléter"
+  let unfolded_prog = unfold_repeat prog in (* On déplie le programme pour ne plus avoir de Repeat *)
+  (* Fonction auxiliaire qui calcule chaque position atteinte par l'instruction courante *)
+  let rec execute_program prog current_point visited_points =
+    match prog with
+    | [] -> List.rev visited_points
+    | Either (first_prog, second_prog) :: _ -> 
+      let random = Random.bool () in (*Initialisation d'un nombre pris aléatoirement entre 0 et 1 *)
+      (* On choisit un des deux programmes du Either en fonction de la valeur de notre random *)
+      if random then execute_program first_prog p visited_points 
+      else execute_program second_prog p visited_points
+    | Repeat _ :: _ -> failwith "error in unfold_repeat" (* Toujours inutile mais nécessaire pour la compilation *)
+    | Move t :: rest ->
+        let new_point =
+          match t with (* Calcul de la nouvelle position en fonction de si l'instruction est une translation ou une rotation *)
+          | Translate vector -> translate current_point vector
+          | Rotate (center, angle) -> rotate center angle current_point
+        in
+        execute_program rest new_point (new_point :: visited_points)
+  in
+  execute_program unfolded_prog p [p]
+
 
 let all_choices (prog : program) : program list =
   failwith "À compléter"
