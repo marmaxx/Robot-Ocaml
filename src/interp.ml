@@ -34,7 +34,9 @@ let rec unfold_repeat (prog : program) : program =
   | [] -> []
   | Move t :: rest -> Move t :: unfold_repeat rest
   | Repeat (i,p) :: rest -> (expand_repeat i p) @ (unfold_repeat rest) (* On utilise la fonction auxiliaire *)
-  | Either _ :: _ -> raise EitherEncountered (* Exception levée lorssque l'on rencontre un Either *)
+  (* | Either _ :: _ -> raise EitherEncountered (* Exception levée lorssque l'on rencontre un Either *) *)
+    (* On gère maintenant le cas du Either en dépliant les possibles Repeat à l'intérieur du Either *)
+  | Either (first_prog, second_prog) :: rest -> Either (unfold_repeat first_prog, unfold_repeat second_prog) :: rest
 
 (* Fonction qui renvoie une liste de toutes les positions visitées par le robot durant l'exécution 
    du programme détermininiste en paramètre*)
