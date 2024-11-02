@@ -34,10 +34,27 @@ let rec unfold_repeat (prog : program) : program =
   | [] -> []
   | Move t :: rest -> Move t :: unfold_repeat rest
   | Repeat (i,p) :: rest -> (expand_repeat i p) @ (unfold_repeat rest) (* On utilise la fonction auxiliaire *)
-  | Either _ :: _ -> raise EitherEncountered (* Exception levée lorssque l'on rencontre un Either*)
+  | Either _ :: _ -> raise EitherEncountered (* Exception levée lorssque l'on rencontre un Either *)
 
-let run_det (prog : program) (p : point) : point list =
-  failwith "À compléter"
+(* Fonction qui renvoie une liste de toutes les positions visitées par le robot durant l'exécution 
+   du programme détermininiste en paramètre*)
+let rec run_det (prog : program) (p : point) : point list =
+  let unfolded_prog = unfold_repeat prog in (* On déplie le programme pour ne plus avoir de Repeat *)
+  (* Fonction auxiliaire qui calcule chaque position atteinte par l'instruction courante *)
+  let rec execute_program prog current_point visited_points =
+    match prog with
+    | [] -> List.rev visited_points
+    | Either _ :: _ -> raise EitherEncountered (* Exception levée lorssque l'on rencontre un Either *)
+    | Repeat _ :: _ -> failwith "error in unfold_repeat" (* Inutile mais doit être présent sinon problème à la compilation *)
+    | Move t :: rest ->
+        let new_point =
+          match t with (* Calcul de la nouvelle position en fonction de si l'instruction est une translation ou une rotation *)
+          | Translate vector -> translate current_point vector
+          | Rotate (center, angle) -> rotate center angle current_point
+        in
+        execute_program rest new_point (new_point :: visited_points)
+  in
+  execute_program unfolded_prog p [p]
 
 let target_reached_det (prog : program) (p : point) (target : rectangle) : bool =
   failwith "À compléter"
