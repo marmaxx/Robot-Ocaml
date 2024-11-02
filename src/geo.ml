@@ -10,7 +10,7 @@ type vector = coord2D
 type angle = float
 
 let translate (v : vector) (p : point) : point =
-  {x = p.x +. v.x; y = p.y +. v.y}
+  failwith "À compléter"
 
 let rad_of_deg (a : angle) : angle =
   failwith "À compléter"
@@ -19,8 +19,7 @@ let deg_of_rad (a : angle) : angle =
   failwith "À compléter"
 
 let rotate (c : point) (alpha : angle) (p : point) : point =
-  {x = c.x +. (p.x -. c.x) *. Float.cos (Float.pi /. 180. *. alpha) -. (p.y -. c.y) *. Float.sin (Float.pi /. 180. *. alpha); 
-   y = c.y +. (p.x -. c.x) *. Float.sin (Float.pi /. 180. *. alpha) +. (p.y -. c.y) *. Float.cos (Float.pi /. 180. *. alpha)} 
+  failwith "À compléter"
   
 type transformation =
   Translate of vector
@@ -37,7 +36,7 @@ type rectangle = {
   }
 
 let in_rectangle (r : rectangle) (p : point) : bool =
-  r.x_min <= p.x && p.x <= r.x_max && r.y_min <= p.y && p.y <= r.y_max
+  failwith "À compléter"
 
 let corners (r :rectangle) : point list =
   failwith "À compléter"
