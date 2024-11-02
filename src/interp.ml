@@ -56,8 +56,15 @@ let rec run_det (prog : program) (p : point) : point list =
   in
   execute_program unfolded_prog p [p]
 
-let target_reached_det (prog : program) (p : point) (target : rectangle) : bool =
-  failwith "À compléter"
+  (* Fonction qui vérifie si le robot arrive dans la cible après lexécution du programme *)
+  let target_reached_det (prog : program) (p : point) (target : rectangle) : bool =
+    let list_of_points = run_det prog p in (* On récupère la liste de toutes les positions visitées *)
+    let last_point = (* On récupère le dernier élément de cette liste *)
+      match List.rev list_of_points with
+      | [] -> p
+      | x :: _ -> x
+    in
+  in_rectangle target last_point (* On vérifie si ce point est dans le rectangle cible ou non *)
   
 let run (prog : program) (p : point) : point list =
   failwith "À compléter"
