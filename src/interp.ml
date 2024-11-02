@@ -93,9 +93,25 @@ let run (prog : program) (p : point) : point list =
   in
   execute_program unfolded_prog p [p]
 
+(* Fonction qui renvoie toutes les listes possibles de programmes sans Either *)
+let rec all_choices prog =
+  let unfolded_prog = unfold_repeat prog in (* On déplie le programme pour ne plus avoir de Repeat *)
+  match unfolded_prog with
+  | [] -> [[]] 
+    (* Cas inutile *)
+  | Repeat (i,p) :: rest -> 
+    let choices_from_rest = all_choices rest in
+    List.map (fun choice -> Repeat (i,p) :: choice) choices_from_rest
+    (* On sépare les deux programmes du Either et on concatène les deux programmes aves la suite *)
+  | Either (left, right) :: rest ->
+      let left_choices = all_choices (left @ rest) in
+      let right_choices = all_choices (right @ rest) in
+      List.map (fun choice -> choice) left_choices @ List.map (fun choice -> choice) right_choices
+    (* On ajoute l'instruction Move à chaque choix *)
+  | Move t :: rest ->
+      let choices_from_rest = all_choices rest in
+      List.map (fun choice -> Move t :: choice) choices_from_rest
 
-let all_choices (prog : program) : program list =
-  failwith "À compléter"
 
 let target_reached (prog : program) (p : point) (r : rectangle) : bool =
   failwith "À compléter"
