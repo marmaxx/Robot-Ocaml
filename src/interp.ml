@@ -19,8 +19,22 @@ and has_either_instruction instr =
   | Repeat (number, sub_prog) -> is_deterministic sub_prog (* Récursion pour vérifier si le sous-programme est déterminiset ou non *)
   | Either _ -> false
 
-let unfold_repeat (prog : program) : program =
-  failwith "À compléter"
+
+(* Définition de l'exception si l'on rencontre un either *)
+exception EitherEncountered;;
+
+(* Fonction qui déplie chaque instruction Repeat *)
+let rec unfold_repeat (prog : program) : program =
+  (* Fonction auxiliaire permettant de dérouler n fois le sous-programme à l'intérieur du Repeat *)
+  let rec expand_repeat n sub_prog = 
+    if n <= 0 then []
+    else (unfold_repeat sub_prog) @ (expand_repeat (n-1) sub_prog)
+  in
+  match prog with 
+  | [] -> []
+  | Move t :: rest -> Move t :: unfold_repeat rest
+  | Repeat (i,p) :: rest -> (expand_repeat i p) @ (unfold_repeat rest) (* On utilise la fonction auxiliaire *)
+  | Either _ :: _ -> raise EitherEncountered (* Exception levée lorssque l'on rencontre un Either*)
 
 let run_det (prog : program) (p : point) : point list =
   failwith "À compléter"
