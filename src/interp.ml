@@ -58,7 +58,7 @@ let rec run_det (prog : program) (p : point) : point list =
   in
   execute_program unfolded_prog p [p]
 
-  (* Fonction qui vérifie si le robot arrive dans la cible après lexécution du programme *)
+  (* Fonction qui vérifie si le robot arrive dans la cible après l'exécution du programme *)
   let target_reached_det (prog : program) (p : point) (target : rectangle) : bool =
     let list_of_points = run_det prog p in (* On récupère la liste de toutes les positions visitées *)
     let last_point = (* On récupère le dernier élément de cette liste *)
@@ -78,7 +78,7 @@ let run (prog : program) (p : point) : point list =
     match prog with
     | [] -> List.rev visited_points
     | Either (first_prog, second_prog) :: _ -> 
-      let random = Random.bool () in (*Initialisation d'un nombre pris aléatoirement entre 0 et 1 *)
+      let random = Random.bool () in (* Initialisation d'un nombre pris aléatoirement entre 0 et 1 *)
       (* On choisit un des deux programmes du Either en fonction de la valeur de notre random *)
       if random then execute_program first_prog p visited_points 
       else execute_program second_prog p visited_points
@@ -94,7 +94,7 @@ let run (prog : program) (p : point) : point list =
   execute_program unfolded_prog p [p]
 
 (* Fonction qui renvoie la liste de tous les programmes possibles sans Either *)
-let rec all_choices (prog : program) (p : point) : program list =
+let rec all_choices (prog : program) : program list =
   let unfolded_prog = unfold_repeat prog in (* On déplie le programme pour ne plus avoir de Repeat *)
   match unfolded_prog with
   | [] -> [[]] 
