@@ -52,4 +52,10 @@ let corners (r : rectangle) : point list =
   [{x = r.x_min ; y = r.y_max} ; {x = r.x_min ; y = r.y_min} ; {x = r.x_max ; y = r.y_max} ; {x = r.x_max ; y = r.y_min}]
   
 let rectangle_of_list (pl : point list) : rectangle = 
-  failwith "À compléter"
+  match pl with 
+  | [] -> failwith "pas de points"
+  | h :: t -> let min_max_start = (h.x, h.x, h.y, h.y) in 
+    let (xmin, xmax, ymin, ymax) =
+      List.fold_left( fun (xmin, xmax, ymin, ymax) p -> 
+        (min xmin p.x, max xmax p.x, min ymin p.y, max ymax p.y) ) min_max_start t
+      in {x_min = xmin ; x_max = xmax ; y_min = ymin ; y_max = ymax}
