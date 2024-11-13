@@ -10,23 +10,33 @@ type vector = coord2D
 type angle = float
 
 let translate (v : vector) (p : point) : point =
-  failwith "À compléter"
+  {x = p.x +. v.x  ; y = p.y +. v.y };;
 
 let rad_of_deg (a : angle) : angle =
-  failwith "À compléter"
+  Float.pi *. a /. 180.0 ;;
 
 let deg_of_rad (a : angle) : angle =
-  failwith "À compléter"
+  a *. 180.0 /. Float.pi ;;
 
 let rotate (c : point) (alpha : angle) (p : point) : point =
-  failwith "À compléter"
+(* on veut translater p par -c pour appliquer une rotation par rapport à l'origine*)
+let neg_c = { x = (-1.) *. c.x ; y = (-1.) *. c.y} in
+
+(* on code une fonction de rotation par rapport à l'origine*)
+let rotation_vectorielle (theta : angle) (m : point) =
+   {x = (Float.cos theta) *. m.x -. (Float.sin theta) *. m.y ; y = (Float.sin theta) *. m.x +. (Float.cos theta) *. m.y}
+
+   (*on translate p par -c, puis on applique la rotation par rapport à l'origine, puis on retranslate de c*)
+in translate c (rotation_vectorielle (rad_of_deg alpha) (translate neg_c p));;
   
 type transformation =
   Translate of vector
 | Rotate of point * angle
 
 let transform (t : transformation) (p : point) : point =
-  failwith "À compléter"
+  match t with 
+  | Translate v -> translate v p
+  | Rotate (c, alpha) -> rotate c alpha p 
 
 type rectangle = {
     x_min : float;
@@ -36,10 +46,16 @@ type rectangle = {
   }
 
 let in_rectangle (r : rectangle) (p : point) : bool =
-  failwith "À compléter"
+  (r.x_min <= p.x) && (r.x_max >= p.x) && (r.y_min <= p.y) && (r.y_max >= p.y)
 
-let corners (r :rectangle) : point list =
-  failwith "À compléter"
+let corners (r : rectangle) : point list =
+  [{x = r.x_min ; y = r.y_max} ; {x = r.x_min ; y = r.y_min} ; {x = r.x_max ; y = r.y_max} ; {x = r.x_max ; y = r.y_min}]
   
 let rectangle_of_list (pl : point list) : rectangle = 
-  failwith "À compléter"
+  match pl with 
+  | [] -> failwith "pas de points"
+  | h :: t -> let min_max_start = (h.x, h.x, h.y, h.y) in 
+    let (xmin, xmax, ymin, ymax) =
+      List.fold_left( fun (xmin, xmax, ymin, ymax) p -> 
+        (min xmin p.x, max xmax p.x, min ymin p.y, max ymax p.y) ) min_max_start t
+      in {x_min = xmin ; x_max = xmax ; y_min = ymin ; y_max = ymax}
