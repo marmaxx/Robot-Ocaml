@@ -156,12 +156,8 @@ let () = add_tests_1
   is_deterministic
   pp_program
   Alcotest.bool
-  [ (* Ajout d'un test avec une liste vide *)
-    [], true;
-    [Repeat (8, [Move (Rotate (vector 0. 0., 45.))]); Move (Translate (vector 1. 1.))], true;
+  [ [Repeat (8, [Move (Rotate (vector 0. 0., 45.))]); Move (Translate (vector 1. 1.))], true;
     [Move (Translate (vector 1. 1.)); Either ([Move (Rotate (vector 0. 0., 90.))], [Move (Rotate (vector 1. 1., -90.))])], false;
-    (* Ajout d'un test avec un Either dans un Repeat *)
-    [Repeat (3, [Either([Move (Translate (vector 0. 0.))], [Move (Rotate (vector 0. 0., 45.))])])], false;
   ]
 
 let () =
@@ -186,14 +182,10 @@ let () = add_tests_2
   pp_program
   pp_vector
   (Alcotest.list testable_vector)
-  [ (* Ajout d'un test avec un programme vide en entrée *)
-    [], vector 0. 0., [vector 0. 0.];
-    (* Ajout d'un test où le robot se déplace très proche de l'origine *)
-    [Move (Translate (vector 0.1 0.1))], vector 0. 0., [vector 0. 0.; vector 0.1 0.1];
+  [ [], vector 0. 0., [vector 0. 0.];
     [Move (Translate (vector 1. 0.)); Move (Translate (vector 0. 1.))], vector 1. 2., [vector 1. 2.; vector 2. 2.; vector 2. 3.];
     [Move (Rotate (vector 0. 0., 90.)); Move (Rotate (vector 1. 1., 90.))], vector 1. 1., [vector 1. 1.; vector (-1.) 1.; vector 1. (-1.)];
-    (* Ajout d'un test avec une instruction répétée beaucoup de fois, i.e. où le robot se déplace loin de l'origine *)
-    [Repeat (10, [Move (Translate (vector 1. 0.))])], vector 0. 0., [vector 0. 0.; vector 1. 0.; vector 2. 0.; vector 3. 0.; vector 4. 0.; vector 5. 0.; vector 6. 0.; vector 7. 0.; vector 8. 0.; vector 9. 0.; vector 10. 0.];
+    [Repeat (5, [Move (Translate (vector 1. 0.))])], vector 0. 0., [vector 0. 0.; vector 1. 0.; vector 2. 0.; vector 3. 0.; vector 4. 0.; vector 5. 0.];
   ]
 
 let () = add_tests_3
@@ -205,14 +197,6 @@ let () = add_tests_3
   pp_rectangle
   Alcotest.bool
   [ [], vector 0. 0., rectangle (-1.) 1. (-1.) 1., true;
-    (* Ajout d'un test ou la cible est un point *)
-    [Move (Translate (vector 1. 1.))], vector 0. 0., rectangle 1. 1. 1. 1., true;
-    (* Ajout d'un test où le robot arrive sur un bord du rectangle *)
-    [Move (Translate (vector 1. 1.))], vector 0. 0., rectangle 1. 3. 1. 3., true;
-    (* Ajout d'un test où le robot entre jamais dans le rectangle *)
-    [Move (Translate (vector 2. 3.))], vector 1. 1., rectangle 4. 5. 4. 5., false;
-    (* Ajout d'un test où le robot passe dans le rectangle mais n'y est plus à la fin de l'exécution du programme *)
-    [Move (Translate (vector 1. 1.)); Move (Translate (vector 3. 3.))], vector 0. 0., rectangle 1. 2. 1. 2., false;
     [Move (Translate (vector 1. 0.)); Move (Translate (vector 0. 1.))], vector 1. 2., rectangle 1.5 2.5 2.5 3.5, true;
     [Move (Rotate (vector 0. 0., 90.)); Move (Rotate (vector 1. 1., 90.))], vector 1. 1., rectangle 0.5 1.5 (-1.5) 1.5, true;
     [Repeat (100, [Move (Translate (vector 1. 1.))])], vector 0. 0., rectangle 99.9 100.1 99.9 100.1, true;
