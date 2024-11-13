@@ -67,7 +67,12 @@ let () = add_tests_2
     pp_vector
     testable_vector
     [ vector 1. 1., vector 0. 0., vector 1. 1.;
-      vector 1. 1., vector 2.5 4.5, vector 3.5 5.5
+      vector 1. 1., vector 2.5 4.5, vector 3.5 5.5 ;
+      vector 0. 0., vector 0. 0., vector 0. 0.;
+      (*tests ajoutés *)
+      vector (-1.) (-3.), vector 1. 1., vector 0. (-2.);
+      vector 2. 2., vector (-2.) (-2.), vector 0. 0.;
+      vector max_float max_float, vector 1. 1., vector max_float max_float
     ]
 
 let () = add_tests_1
@@ -77,7 +82,10 @@ let () = add_tests_1
     Fmt.float
     (Alcotest.float 0.01)
     [ (Float.pi /. 2.), 90.;
-      (Float.pi /. 6.), 30.
+      (Float.pi /. 6.), 30.;
+      (* tests ajoutés *)
+      (-. Float.pi /. 2.), -90.;
+      3. *. Float.pi, 540.;
     ]
 
 let () = add_tests_1
@@ -87,7 +95,10 @@ let () = add_tests_1
     Fmt.float
     (Alcotest.float 0.01)
     [ 45., 0.7854;
-      180., Float.pi
+      180., Float.pi;
+      (*tests ajoutés*)
+      (-180.), -. Float.pi;
+      540., 3. *. Float.pi
     ]
 
 let () = add_tests_3
@@ -99,7 +110,12 @@ let () = add_tests_3
   pp_vector
   testable_vector
   [ vector 0. 0., 90., vector 1. 1., vector (-1.) 1.;
-    vector 0. 1., 45., vector 1. 0., vector 1.414 1.
+    vector 0. 1., 45., vector 1. 0., vector 1.414 1.;
+    (*tests ajoutés*)
+    vector 0. 0., 0., vector 1. 1., vector 1. 1.;
+    vector 0. 0., 360., vector 1. 1., vector 1. 1.;
+    vector 0. 0., -90., vector 1. 0., vector 0. (-1.);
+    vector 1. 1., 90., vector 2. 2., vector 0. 2.
   ]
 
 let () = add_tests_2
@@ -126,6 +142,15 @@ let () = add_tests_2
     rectangle 0. 1. 0. 1., vector 1.2 0.3, false;
     rectangle (-1.) 1. (-1.) 1., vector 0. 0., true;
     rectangle (-1.) 1. (-1.) 1., vector 0. 2., false;
+    (*tests ajoutés*)
+    rectangle 0. 1. 0. 1., vector 1. 0., true;
+    rectangle 0. 1. 0. 1., vector 0. 1., true;
+    rectangle (-1.) 1. (-1.) 1., vector (-1.) 0., true;
+    rectangle (-1.) 1. (-1.) 1., vector 1. (-1.), true;
+    rectangle 0. 0. 0. 0., vector 0. 0., true;
+    rectangle 0. 0. 0. 0., vector 0.1 0.1, false;
+    rectangle 0. 1. 0. 1., vector 1. 1., true;
+    rectangle (-1.) 1. (-1.) 1., vector 1. 1., true
   ]
 
 let () = add_tests_1
@@ -148,6 +173,12 @@ let () = add_tests_1
     [vector 0. (-1.); vector 0. 1.], rectangle 0. 0. (-1.) 1.;
     [vector (-5.) 42.; vector 10. (-12.)], rectangle (-5.) 10. (-12.) 42.;
     [vector 0. 1.; vector 1. 0.; vector 2. (-1.); vector (-1.) 2.5; vector (-3.) 0.; vector (-1.5) 2.; vector 2. 4.], rectangle (-3.) 2. (-1.) 4.;
+    (*tests ajoutés*)
+    [vector 1. 1.], rectangle 1. 1. 1. 1.;
+    [vector 1. 1.; vector 2. 1.; vector 3. 1.], rectangle 1. 3. 1. 1.;
+    [vector 1. 1.; vector 1. 2.; vector 1. 3.], rectangle 1. 1. 1. 3.;
+    [vector 2. 2.; vector 2. 2.; vector 2. 2.], rectangle 2. 2. 2. 2.
+    (*je voulais rajouter un test sur une liste vide, mais comportement par défaut non défini dans l'énoncé*)
   ]
 
 let () = add_tests_1
