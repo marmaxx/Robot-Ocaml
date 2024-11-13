@@ -206,6 +206,7 @@ let () =
     [tr1], [tr1];
     [tr1; Repeat (0, [tr2]); tr1], [tr1; tr1];
     [tr1; Repeat (3, [tr2]); tr1], [tr1; tr2; tr2; tr2; tr1];
+    [Repeat (3, [Repeat (2, [tr2])])], [tr2; tr2; tr2; tr2; tr2; tr2];
   ]
 
 let () = add_tests_2
