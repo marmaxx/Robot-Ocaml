@@ -33,10 +33,10 @@ let run_rect (prog : program) (r : rectangle) : rectangle list =
   let rec execute_program prog current_rectangle visited_rectangles =
     match prog with
     | [] -> List.rev visited_rectangles
-    | Either (first_prog, second_prog) :: _ -> 
+    | Either (first_prog, second_prog) :: rest -> 
       let random = Random.bool () in 
-      if random then execute_program first_prog r visited_rectangles 
-      else execute_program second_prog r visited_rectangles
+      let chosen_prog = if random then first_prog else second_prog in
+      execute_program (chosen_prog @ rest) current_rectangle visited_rectangles
     | Repeat _ :: _ -> failwith "error in unfold_repeat"
     | Move t :: rest ->
         (* On calcule le nouveau rectangle avec la fonction précèdente *)
@@ -50,7 +50,13 @@ let inclusion (r : rectangle) (t : rectangle) : bool =
   List.for_all (fun p -> in_rectangle t p) (corners r)
 
 let target_reached_rect (prog : program) (r : rectangle) (target : rectangle) : bool =
-  failwith "À compléter"
+  let list_of_rect = run_rect prog r in
+  let last_rect =
+    match List.rev list_of_rect with
+      | [] -> r
+      | x :: _ -> x
+    in
+  inclusion last_rect target
 
 let run_polymorphe (transform : transformation -> 'a -> 'a) (prog : program) (i : 'a) : 'a list =
   failwith "À compléter"

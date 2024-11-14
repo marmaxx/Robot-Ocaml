@@ -77,11 +77,11 @@ let run (prog : program) (p : point) : point list =
   let rec execute_program prog current_point visited_points =
     match prog with
     | [] -> List.rev visited_points
-    | Either (first_prog, second_prog) :: _ -> 
+    | Either (first_prog, second_prog) :: rest -> 
       let random = Random.bool () in (* Initialisation d'un nombre pris aléatoirement entre 0 et 1 *)
       (* On choisit un des deux programmes du Either en fonction de la valeur de notre random *)
-      if random then execute_program first_prog p visited_points 
-      else execute_program second_prog p visited_points
+      let chosen_prog = if random then first_prog else second_prog in
+      execute_program (chosen_prog @ rest) current_point visited_points
     | Repeat _ :: _ -> failwith "error in unfold_repeat" (* Toujours inutile mais nécessaire pour la compilation *)
     | Move t :: rest ->
         let new_point =
