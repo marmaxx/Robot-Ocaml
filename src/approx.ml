@@ -4,7 +4,12 @@ open Interp
 (* Code de la Section 5 du projet. *)
 
 let sample (rect : rectangle) : point =
-  failwith "À compléter"
+  Random.self_init (); (* On initialise un générateur *)
+  (* On choisit une abscisse entre rect.x_min et rect.x_max *)
+  let x = rect.x_min +. Random.float (rect.x_max -. rect.x_min) in 
+  (* On choisit une ordonnée entre rect.y_min et rect.y_max *)
+  let y = rect.y_min +. Random.float (rect.y_max -. rect.y_min) in
+  {x ; y}
   
 let transform_rect (t : transformation) (r : rectangle) : rectangle =
   failwith "À compléter"
