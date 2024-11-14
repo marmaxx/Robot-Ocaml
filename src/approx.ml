@@ -46,7 +46,8 @@ let run_rect (prog : program) (r : rectangle) : rectangle list =
   execute_program unfolded_prog r [r]
 
 let inclusion (r : rectangle) (t : rectangle) : bool =
-  failwith "À compléter"
+  (* On vérifie pour chaque coin du premier rectangle s'il est dans le deuxième *)
+  List.for_all (fun p -> in_rectangle t p) (corners r)
 
 let target_reached_rect (prog : program) (r : rectangle) (target : rectangle) : bool =
   failwith "À compléter"
