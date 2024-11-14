@@ -10,9 +10,22 @@ let sample (rect : rectangle) : point =
   (* On choisit une ordonnée entre rect.y_min et rect.y_max *)
   let y = rect.y_min +. Random.float (rect.y_max -. rect.y_min) in
   {x ; y}
-  
+;;
+
 let transform_rect (t : transformation) (r : rectangle) : rectangle =
-  failwith "À compléter"
+  (* On récupère les coins du rectangle en paramètre *)
+  let corners = corners r in
+  match t with 
+  | Translate vector ->
+    (* On applique pour chaque coin la translation *)
+    let corners_after_translation = List.map (fun x -> translate vector x) corners in
+    (* On retourne le rectangle fait avec ces points *)
+    rectangle_of_list corners_after_translation
+  | Rotate (point, angle) -> 
+    (* On applique pour chaque coin la rotation *)
+    let corners_after_rotation = List.map (fun x -> rotate point angle x) corners in
+    (* On retourne le plus petit rectangle qui contient chaque point de la liste *)
+    rectangle_of_list corners_after_rotation
 
 let run_rect (prog : program) (r : rectangle) : rectangle list =
   failwith "À compléter"
