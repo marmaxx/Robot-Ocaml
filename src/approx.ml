@@ -59,10 +59,44 @@ let target_reached_rect (prog : program) (r : rectangle) (target : rectangle) : 
   inclusion last_rect target
 
 let run_polymorphe (transform : transformation -> 'a -> 'a) (prog : program) (i : 'a) : 'a list =
-  failwith "À compléter"
+  let unfolded_prog = unfold_repeat prog in
+  let rec execute_program prog current_object visited_objects =
+    match prog with
+    | [] -> List.rev visited_objects
+    | Either (first_prog, second_prog) :: rest -> 
+      let random = Random.bool () in 
+      let chosen_prog = if random then first_prog else second_prog in
+      execute_program (chosen_prog @ rest) current_object visited_objects
+    | Repeat _ :: _ -> failwith "error in unfold_repeat"
+    | Move t :: rest ->
+        let new_obj = transform t current_object in
+        execute_program rest new_obj (new_obj :: visited_objects)
+  in
+  execute_program unfolded_prog i [i]
 
 let rec over_approximate (prog : program) (r : rectangle) : rectangle =
-  failwith "À compléter"
+  let unfolded_prog = unfold_repeat prog in
+  let rec execute_program prog current_rectangle approx_rectangle =
+    match prog with
+    | [] -> approx_rectangle
+    | Either (first_prog, second_prog) :: rest -> 
+      (* executer premier et deuxieme et renvoyer rectangle contenant les 2 sorties *)
+      let first_rect = execute_program first_prog current_rectangle approx_rectangle
+      in let second_rect = execute_program second_prog current_rectangle approx_rectangle
+      in let new_approx_rect = rectangle_of_list (corners first_rect @ corners second_rect)
+      in execute_program rest new_approx_rect new_approx_rect
+    | Repeat _ :: _ -> failwith "error in unfold_repeat"
+    | Move t :: rest ->
+        let new_rect = transform_rect t approx_rectangle in
+        execute_program rest new_rect new_rect
+  in
+  execute_program unfolded_prog r r
+
+let inclusion (rect1 : rectangle) (rect2 : rectangle) : bool =
+  let list_corners_1 = corners rect1
+  in 
+  List.fold_left (fun acc p -> acc && (in_rectangle rect2 p)) true list_corners_1
 
 let feasible_target_reached (prog : program) (r : rectangle) (target : rectangle) : bool =
-  failwith "À compléter"
+  let final_rect = over_approximate prog r 
+  in inclusion final_rect target
