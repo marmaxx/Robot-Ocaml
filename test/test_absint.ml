@@ -273,13 +273,23 @@ let () =
     [t1], [[t1]];
     [rot; Either ([t1], [t2])], [[rot; t1]; [rot; t2]];
     [Repeat (3, [Either ([t1], [t2])])], [[t1;t1;t1]; [t1;t1;t2]; [t1;t2;t1]; [t1;t2;t2]; [t2;t1;t1]; [t2;t1;t2]; [t2;t2;t1]; [t2;t2;t2]];
+    (* tests ajoutés *)
+    ([Repeat (0, [t1])], [[]]);
+    ([Either ([], [t1])], [ []; [t1] ]);
+    ([Either ([Either ([t1], [t2])], [rot])], [[t1]; [t2]; [rot];]);
+    ([Repeat (3, []); Either ([], [])], [[]])
   ]
+
 
 let () =
   let t1 = Move (Translate (vector 0. 1.)) in
   let t2 = Move (Translate (vector 1. 0.)) in
   let t3 = Move (Translate (vector 0. (-1.))) in
   let t4 = Move (Translate (vector (-1.) 0.)) in
+  let t5 = Move (Translate (vector 1. 1.)) in
+  let t6 = Move (Translate (vector 1. 3.)) in
+  let rot = Move (Rotate (vector 0. 0., 45.)) in
+  (*let rot2 = Move (Rotate (vector 1. 1., 30.)) in*)
   add_tests_3
   "target_reached"
   "target_reached"
@@ -290,6 +300,15 @@ let () =
   Alcotest.bool
   [ [Repeat (10, [Either ([t1; t2], [t2; t1])])], vector 0. 0., rectangle 9.9 10.1 9.9 10.1, true;
     [Repeat (5, [Either ([t1],[t3]); Either ([t2],[t4])])], vector 0. 0., rectangle (-4.9) 4.9 (-4.9) 4.9, false;
+    (* Ajout d'un test ou la cible est un point *)
+    [Either([t5], [t1])], vector 0. 0., rectangle 1. 1. 1. 1., false;
+    (* Ajout d'un test où le robot arrive sur un bord du rectangle *)
+    [Either ([t5], [t6])], vector 0. 0., rectangle 1. 3. 1. 3., true;
+    (* Ajout d'un test où le robot entre jamais dans le rectangle *)
+    [Either ([t5 ; rot], [rot; rot])], vector 1. 1., rectangle 4. 5. 4. 5., false;
+    (* Ajout d'un test où le robot passe dans le rectangle mais n'y est plus à la fin de l'exécution du programme *)
+    [Move (Translate (vector 1. 1.)); Move (Translate (vector 3. 3.))], vector 0. 0., rectangle 1. 2. 1. 2., false;
+
   ]
 
 let () =
@@ -319,6 +338,12 @@ let () = add_tests_2
     Translate (vector (-1.) (-1.)), rectangle 0. 2. 0. 2., rectangle (-1.) 1. (-1.) 1.;
     Rotate (vector 0. 0., 45.), rectangle 0. 1. 0. 1., rectangle (-0.707) 0.707 0. 1.414;
     Rotate (vector 0. 0., 90.), rectangle 0. 1. 0. 1., rectangle (-1.) 0. 0. 1.;
+    (* ajout d'un test vérifiant tranlsation de l'espace négatif vers positif *)
+    Translate (vector 3.0 4.0), rectangle (-2.) (-1.) (-3.) (-2.), rectangle 1. 2. 1. 2.;
+    (* ajout d'un test avec un retangle qui n'est pas carré*)
+    Rotate (vector 0. 0., 90.), rectangle 0. 3. 0. 1., rectangle (-1.) 0. 0. 3.;
+    (* ajout d'un test avec une rotation pas autour de 0;0 *)
+    Rotate (vector 2. 2., 90.), rectangle 1. 3. 1. 2., rectangle 2. 3. 1. 3.
   ]
 
 let () = add_tests_2
@@ -343,6 +368,8 @@ let () = add_tests_2
     rectangle 0. 1. 0. 1., rectangle 0.5 1.5 0.5 1.5, false;
     rectangle 0. 1. 0. 1., rectangle 0. 1. 0. 1., true;
     rectangle 0. 3. 0. 3., rectangle 1. 2. 1. 2., false;
+    (* ajout d'un test avec un coté dans le rectangle et un coté hors du rectangle *)
+    rectangle 1. 3. 1. 3., rectangle 1. 3. 1. 2., false;
   ]
 
 let () =
@@ -358,6 +385,9 @@ let () =
   Alcotest.bool
   [ [Repeat (10, [Either ([t1; t2], [t2; t1])])], rectangle 0. 0. 0. 0., rectangle 9.9 10.1 9.9 10.1, true;
     [Repeat (20, [Move (Rotate (vector 0. 0., 45.))])], rectangle (-1.) 1. (-1.) 1., rectangle (-1000.) 1000. (-1000.) 1000., false;
+    (* tests avec programme vide *)
+    [], rectangle 1. 3. 1. 3., rectangle 1. 3. 1. 2., false;
+    [], rectangle 1. 3. 1. 3., rectangle 1. 3. 1. 3., true;
   ]
 
 let () = add_tests_2
@@ -380,6 +410,7 @@ let () = add_tests_2
   (Alcotest.list testable_rectangle)
   [ [Move (Translate (vector 2. 1.))], rectangle 0. 1. 0. 1., [rectangle 0. 1. 0. 1.; rectangle 2. 3. 1. 2.];
     [Repeat (4, [Move (Rotate (vector 0. 0., 45.))])], rectangle (-1.) 1. (-1.) 1., [rectangle (-1.) 1. (-1.) 1.; rectangle (-1.414) 1.414 (-1.414) 1.414; rectangle (-2.) 2. (-2.) 2.; rectangle (-2.828) 2.828 (-2.828) 2.828; rectangle (-4.) 4. (-4.) 4.];
+    
   ]
 
 let () =
@@ -393,6 +424,9 @@ let () =
   [ [], rectangle 1. 2. 3. 4., rectangle 1. 2. 3. 4.;
     [Either ([Move (Translate (vector 1. 2.))], [Move (Rotate (vector 0. 0., 90.))])], rectangle 0. 1. 0. 1., rectangle (-1.) 2. 0. 3.;
     [Repeat (100, [Either ([Move (Translate (vector 1. 0.))], [Move (Translate (vector 0. 1.))])])], rectangle 0. 0. 0. 0., rectangle 0. 100. 0. 100.;
+    (* ajout d'un test où une des issues n'est pas un rectzangle droit*)
+    [Either ([Move (Translate (vector 1. 2.))], [Move (Rotate (vector 0. 0., 45.))])], rectangle 0. 1. 0. 1., rectangle (-0.707) 2. 0. 3.;
+    
   ]
   
 let () =

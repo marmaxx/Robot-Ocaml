@@ -92,10 +92,6 @@ let rec over_approximate (prog : program) (r : rectangle) : rectangle =
   in
   execute_program unfolded_prog r r
 
-let inclusion (rect1 : rectangle) (rect2 : rectangle) : bool =
-  let list_corners_1 = corners rect1
-  in 
-  List.fold_left (fun acc p -> acc && (in_rectangle rect2 p)) true list_corners_1
 
 let feasible_target_reached (prog : program) (r : rectangle) (target : rectangle) : bool =
   let final_rect = over_approximate prog r 
