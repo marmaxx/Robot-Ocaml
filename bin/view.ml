@@ -31,7 +31,7 @@ let draw_axis width height =
   moveto (width / 2) 0;
   lineto (width / 2) height
 
-(*let draw_spiral width height =
+let draw_spiral width height =
   moveto (width + 150) height;
   lineto (width + 150) (height + 150);
   lineto (width - 150) (height + 150);
@@ -44,7 +44,7 @@ let draw_axis width height =
   lineto (width + 450) (height + 450);
   lineto (width - 450) (height + 450);
   lineto (width - 450) (height - 450);
-  lineto (width + 450) (height - 450) *)
+  lineto (width + 450) (height - 450) 
 
 (* impression des états d'un programme en fonction de la taille de la fenetre *)
 let rec print_rectangles rects width height = 
@@ -55,7 +55,7 @@ let rec print_rectangles rects width height =
       Unix.sleep 1;
       clear_graph ();
       draw_axis width height;
-      (*draw_spiral 450 450; j'avais mis cette ligne pour un repère pour ma spirale*) 
+      draw_spiral 450 450; (* guide visuel pour ma spirale, à enlever après ou à séparer pour execution du programme spirale*)
       print_rectangles t width height
 
 (* j'ai voulu faire un programme qui fait une spirale hyper classe mais c'est giga chiant avec la manière dont sont imlplémentées les rotations du rectangle*)
@@ -69,32 +69,21 @@ let create_spiral width height =
   let right = Move (Translate { x = x_unit; y = 0. }) in
   let down = Move (Translate { x = 0.; y = y_unit }) in
   let left = Move (Translate { x = (-.x_unit); y = 0. }) in
-  let rot1 = Move (Rotate ({ x = 10. *. x_unit; y = 0. }, 90.)) in
-  let rot2 = Move (Rotate ({ x = 7. *. x_unit; y = (-.10.) *. y_unit }, 90.)) in
-  let rot3 = Move (Rotate ({ x = (-.9.) *. x_unit; y = (-.9.) *. y_unit }, 90.)) in
-  let rot4 = Move (Rotate ({ x = (-.9.) *. x_unit; y = 9. *. y_unit }, 90.)) in
-  let rot5 = Move (Rotate ({ x = 19. *. x_unit; y = 9. *. y_unit }, 90.)) in
-  let rot6 = Move (Rotate ({ x = 19. *. x_unit; y = (-.19.) *. y_unit }, 90.)) in
-  let rot7 = Move (Rotate ({ x = (-.19.) *. x_unit; y = (-.19.) *. y_unit }, 90.)) in
-  let rot8 = Move (Rotate ({ x = (-.19.) *. x_unit; y = 19. *. y_unit }, 90.)) in
-  let rot9 = Move (Rotate ({ x = 29. *. x_unit; y = 19. *. y_unit }, 90.)) in
-  let rot10 = Move (Rotate ({ x = 29. *. x_unit; y = (-.29.) *. y_unit }, 90.)) in
-  let rot11 = Move (Rotate ({ x = (-.29.) *. x_unit; y = (-.29.) *. y_unit }, 90.)) in
-  let rot12 = Move (Rotate ({ x = (-.29.) *. x_unit; y = 29. *. y_unit }, 90.)) in
+
   [
-    Repeat (8, [right]); rot1;
-    Repeat (7, [up]); rot2;
-    Repeat (19, [left]); rot3;
-    Repeat (19, [down]); rot4;
-    Repeat (29, [right]); rot5;
-    Repeat (29, [up]); rot6;
-    Repeat (39, [left]); rot7;
-    Repeat (39, [down]); rot8;
-    Repeat (49, [right]); rot9;
-    Repeat (49, [up]); rot10;
-    Repeat (59, [left]); rot11;
-    Repeat (59, [down]); rot12;
-    Repeat (59, [right])
+    Repeat (8, [right]);
+    Repeat (9, [up]);
+    Repeat (18, [left]);
+    Repeat (19, [down]);
+    Repeat (28, [right]);
+    Repeat (29, [up]);
+    Repeat (38, [left]);
+    Repeat (39, [down]); 
+    Repeat (48, [right]);
+    Repeat (49, [up]);
+    Repeat (58, [left]);
+    Repeat (59, [down]); 
+    Repeat (58, [right])
   ]
 
 let create_rectangle_spiral width =
