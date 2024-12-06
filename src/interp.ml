@@ -3,7 +3,7 @@ open Geo
 (* Code de la Section 4 du projet. *)
 
 type instruction =
-  Move of transformation
+|  Move of transformation
 | Repeat of int * program
 | Either of program * program 
 and program = instruction list

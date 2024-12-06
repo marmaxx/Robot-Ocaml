@@ -1,3 +1,5 @@
 (executable
-	(public_name interp)
-	(libraries graphics pf5))
+	(name view)
+ (public_name view)
+ (libraries graphics pf5 unix)
+ (flags (:standard -open Pf5)))
