@@ -7,7 +7,7 @@ open Graphics
 (* Pour lancer le programme :
 
    dune build (compile)
-   dune exec view (execute)
+   dune exec interp (execute)
 
 *)
 
@@ -22,15 +22,6 @@ let point x y =
 (* Fonction pour éviter d'écrire int_of_Int à chaque fois *)
 let i x = int_of_float x
 
-(* Impression d'un rectangle simple avec coordonnées ajustées par rapport à la taille de la fenêtre *)
-let print_rectangle rect width height rect_colour =
-  set_color rect_colour;
-  fill_rect 
-    ((width / 2) + (i rect.x_min))
-    ((height / 2) - (i rect.y_min)) 
-    ((i rect.x_max) - (i rect.x_min)) 
-    ((i rect.y_max) - (i rect.y_min))
-
 (* Dessiner les axes en fonction de la taille de la fenêtre *)
 let draw_axis width height axis_colour =
   set_color axis_colour;
@@ -43,6 +34,15 @@ let fill_background width height background_colour =
   set_color background_colour;
   fill_rect 0 0 width height
 
+(* Impression d'un rectangle simple avec coordonnées ajustées par rapport à la taille de la fenêtre *)
+let print_rectangle rect width height rect_colour =
+  set_color rect_colour;
+  fill_rect 
+    ((width / 2) + (i rect.x_min))
+    ((height / 2) - (i rect.y_min)) 
+    ((i rect.x_max) - (i rect.x_min)) 
+    ((i rect.y_max) - (i rect.y_min)) 
+
 (* Impression des états d'un programme en fonction de la taille de la fenêtre *)
 let rec print_rectangles rects width height axis_colour background_colour rect_colour = 
   match rects with
@@ -52,13 +52,14 @@ let rec print_rectangles rects width height axis_colour background_colour rect_c
       Unix.sleep 1;
       clear_graph ();
       fill_background width height background_colour;
-      draw_axis width height axis_colour;
+      draw_axis width height axis_colour ;
       print_rectangles t width height axis_colour background_colour rect_colour
 
 (* Impression d'un point *)
 let print_point point width height point_colour =
   set_color point_colour;
   fill_circle ((width / 2) + (i point.x)) ((height / 2) - (i point.y)) 4
+  
 
 (* Impression de la liste de points du robot en fonction de la taille de la fenêtre *)
 let rec print_points points width height axis_colour background_colour point_colour = 
@@ -73,23 +74,22 @@ let rec print_points points width height axis_colour background_colour point_col
       print_points t width height axis_colour background_colour point_colour
 
 (* impression rectangle et point en simultané *)
-let print_point_rect rect width height rect_colour point_colour =
+let print_point_rect (point, rect) width height rect_colour point_colour =
   set_color rect_colour;
   fill_rect 
-    ((width / 2) + (i rect.x_min))
+    ((width / 2) + (i  rect.x_min))
     ((height / 2) - (i rect.y_min)) 
     ((i rect.x_max) - (i rect.x_min)) 
     ((i rect.y_max) - (i rect.y_min));
-  set_color point_colour;
-  let central_point = point rect.x_min rect.y_min in
-  fill_circle 
-    ((width / 2) + i central_point.x) 
-    ((height / 2) - i central_point.y) 
-    4
+    set_color point_colour;
+    fill_circle
+    ((width / 2) + i point.x)
+    ((height / 2) - i point.y) 4
 
 (* itération pour dérouler le programme avec point + rectangle*)
-let rec print_points_rects rects width height axis_colour background_colour rect_colour point_colour= 
-  match rects with
+let rec print_points_rects  combined width height axis_colour background_colour rect_colour point_colour = 
+  
+  match combined with
   | [] -> ()
   | h :: t -> 
       print_point_rect h width height rect_colour point_colour;
@@ -98,6 +98,7 @@ let rec print_points_rects rects width height axis_colour background_colour rect
       fill_background width height background_colour;
       draw_axis width height axis_colour;
       print_points_rects t width height axis_colour background_colour rect_colour point_colour
+
 
 (* Création d'une spirale hyper classe *)
 let create_spiral width height =
@@ -142,6 +143,23 @@ let create_undeterministic_program width height =
     Either ([up], [down]) ; rot1 ; Either ([left], [right]) ; rot1
   ]
 
+let create_stair_program width height rect_width rect_height =
+  let float_width = float_of_int width in
+  let float_height = float_of_int height in
+  let float_rect_width = float_of_int rect_width in
+  let float_rect_height = float_of_int rect_height in
+  let repeat_up = float_height /. float_rect_height in
+  let repeat_up_int = int_of_float repeat_up in
+  let repeat_side = float_width /. float_rect_width in
+  let repeat_side_int = int_of_float repeat_side in
+  let one_step_up = Move(Translate { x = 1. ; y = 1.}) in
+  let rot1 = Move (Rotate ({x = 0. ; y = 0.}, 90.)) in
+  [
+    Repeat(repeat_up_int, [one_step_up]);
+    rot1;
+    Repeat(repeat_side_int, [one_step_up])
+  ]
+
 (* Création d'un rectangle pour la spirale *)
 let create_rectangle_spiral width =
   let float_width = float_of_int width in
@@ -154,9 +172,14 @@ let spiral_program = create_spiral 900 900
 let spiral_rect = create_rectangle_spiral 900
 let list_positions_prog_1 = run_rect spiral_program spiral_rect
 let list_positions_prog_1_point = run spiral_program (point 0. 0.)
+(*let flatten_positions_prog_1_point = List.flatten list_positions_prog_1_point
+let flatten_positions_prog_1 = List.flatten list_positions_prog_1*)
+let combined = List.combine list_positions_prog_1_point list_positions_prog_1
 
 let undeterministic_program = create_undeterministic_program 900 900
 let list_positions_prog_2 = run_rect undeterministic_program spiral_rect
+let stair_program = create_stair_program 900 900 300 150
+let list_position_prog_stairs = run_rect stair_program spiral_rect
 
 (*let choose_prog width height abs cr axis_colour background_colour circle_colour rect_colour prog =
   let (x_min , y_min, x_max, y_max) = !abs in
@@ -312,7 +335,8 @@ let _ =
   
   (* il faut utiliser la focntion choose_prog ici *)
 
-  print_points_rects list_positions_prog_2 width height axis_colour background_colour rect_colour circle_colour;
+  print_rectangles list_position_prog_stairs width height axis_colour background_colour rect_colour;
+  print_points_rects combined width height axis_colour background_colour rect_colour circle_colour;
   print_rectangles list_positions_prog_2 width height axis_colour background_colour rect_colour;
   print_points list_positions_prog_1_point width height axis_colour background_colour circle_colour;
   print_rectangles list_positions_prog_1 width height axis_colour background_colour rect_colour;
