@@ -34,6 +34,27 @@ let fill_background width height background_colour =
   set_color background_colour;
   fill_rect 0 0 width height
 
+let rec print_instruction instruction =
+  match instruction with
+  | Move (Translate { x ; y }) ->
+    let move_string = Printf.sprintf "Move (Translate { x = %.2f; y = %.2f })\n" x y in
+     moveto 10 10;
+     draw_string move_string
+  | Move (Rotate ({ x; y }, angle)) ->
+    let move_string = Printf.sprintf "Move (Rotate { x = %.2f; y = %.2f }, angle = %.2f)\n" x y angle in
+     moveto 10 10;
+     draw_string move_string
+  | Repeat (nb, prog) ->
+    Printf.printf "Repeat (%d, [\n" nb;
+    List.iter print_instruction prog;
+    Printf.printf "])\n"
+  | Either (prog1, prog2) ->
+    Printf.printf "Either (\n";
+    List.iter print_instruction prog1;
+    Printf.printf "or\n";
+    List.iter print_instruction prog2;  
+    Printf.printf ")\n"
+
 (* Impression d'un rectangle simple avec coordonnées ajustées par rapport à la taille de la fenêtre *)
 let print_rectangle rect width height rect_colour =
   set_color rect_colour;
@@ -44,16 +65,41 @@ let print_rectangle rect width height rect_colour =
     ((i rect.y_max) - (i rect.y_min)) 
 
 (* Impression des états d'un programme en fonction de la taille de la fenêtre *)
-let rec print_rectangles rects width height axis_colour background_colour rect_colour = 
-  match rects with
-  | [] -> ()
-  | h :: t -> 
-      print_rectangle h width height rect_colour;
-      Unix.sleepf 0.5;
-      clear_graph ();
-      fill_background width height background_colour;
-      draw_axis width height axis_colour ;
-      print_rectangles t width height axis_colour background_colour rect_colour
+let rec print_rectangles rectangles instructions width height axis_colour background_colour point_colour print = 
+  
+  if !print then 
+    
+    match rectangles with
+    | [] -> () 
+    | h :: t -> 
+        
+        print_rectangle h width height point_colour;
+        Unix.sleepf 0.5;
+        clear_graph ();
+        fill_background width height background_colour;
+        draw_axis width height axis_colour;
+               
+        let combined = List.combine t instructions in
+        match combined with
+        | [] -> () 
+        | (rect, instruction) :: _ -> 
+            print_rectangle rect width height point_colour;
+            Unix.sleepf 0.5;
+            clear_graph ();
+            fill_background width height background_colour;
+            draw_axis width height axis_colour;
+            print_instruction instruction;
+            print_rectangles t (List.tl instructions) width height axis_colour background_colour point_colour print
+  else 
+    match rectangles with
+    | [] -> ()
+    | h :: t -> 
+        print_rectangle h width height point_colour;
+        Unix.sleepf 0.5;
+        clear_graph ();
+        fill_background width height background_colour;
+        draw_axis width height axis_colour;
+        print_rectangles t instructions width height axis_colour background_colour point_colour print
 
 (* Impression d'un point *)
 let print_point point width height point_colour =
@@ -62,16 +108,42 @@ let print_point point width height point_colour =
   
 
 (* Impression de la liste de points du robot en fonction de la taille de la fenêtre *)
-let rec print_points points width height axis_colour background_colour point_colour = 
-  match points with
-  | [] -> ()
-  | h :: t -> 
-      print_point h width height point_colour;
-      Unix.sleepf 0.5;
-      clear_graph ();
-      fill_background width height background_colour;
-      draw_axis width height axis_colour;
-      print_points t width height axis_colour background_colour point_colour
+let rec print_points points instructions width height axis_colour background_colour point_colour print = 
+  
+  if !print then 
+    
+    match points with
+    | [] -> () 
+    | h :: t -> 
+        
+        print_point h width height point_colour;
+        Unix.sleepf 0.5;
+        clear_graph ();
+        fill_background width height background_colour;
+        draw_axis width height axis_colour;
+               
+        let combined = List.combine t instructions in
+        match combined with
+        | [] -> () 
+        | (point, instruction) :: _ -> 
+            print_point point width height point_colour;
+            Unix.sleepf 0.5;
+            clear_graph ();
+            fill_background width height background_colour;
+            draw_axis width height axis_colour;
+            print_instruction instruction;
+            print_points t (List.tl instructions) width height axis_colour background_colour point_colour print
+  else 
+    match points with
+    | [] -> ()
+    | h :: t -> 
+        print_point h width height point_colour;
+        Unix.sleepf 0.5;
+        clear_graph ();
+        fill_background width height background_colour;
+        draw_axis width height axis_colour;
+          print_points t instructions width height axis_colour background_colour point_colour print
+      
 
 (* impression rectangle et point en simultané *)
 let print_point_rect (point, rect) width height rect_colour point_colour =
@@ -220,12 +292,13 @@ let create_spiral width height =
       ]
     
 
-let choose_prog width height abs abs_specified cr axis_colour background_colour circle_colour rect_colour prog =
+let choose_prog width height abs abs_specified cr axis_colour background_colour circle_colour rect_colour prog print =
   let (x_min , y_min, x_max, y_max) = !abs in
   let rect = rectangle x_min y_min x_max y_max in
   match !prog with 
   | "1" ->  
     let spiral_program = create_spiral width height in
+    let unfolded_spiral_program = unfold_repeat spiral_program in
     let list_positions = run spiral_program (point 0. 0.) in
     if !abs_specified then 
       let list_positions_rect = run_rect spiral_program rect in
@@ -233,14 +306,15 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
         let combined = List.combine list_positions list_positions_rect in
         print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
       else 
-        print_rectangles list_positions_rect width height axis_colour background_colour rect_colour
+        print_rectangles list_positions_rect unfolded_spiral_program width height axis_colour background_colour rect_colour print
       
     else  
-        print_points list_positions width height axis_colour background_colour circle_colour
+        print_points list_positions unfolded_spiral_program width height axis_colour background_colour circle_colour print
 
   | "2" -> 
     Printf.printf("in case 2\n");
     let undeterministic_program = create_undeterministic_program width height in
+    let unfolded_undeterministic_program = unfold_repeat undeterministic_program in
     let list_positions = run undeterministic_program (point 0. 0.) in
     if !abs_specified then 
       let list_positions_rect = run_rect undeterministic_program rect in
@@ -249,13 +323,14 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
         Printf.printf("managed to combine lists\n");
         print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
       else 
-        print_rectangles list_positions_rect width height axis_colour background_colour rect_colour
+        print_rectangles list_positions_rect unfolded_undeterministic_program width height axis_colour background_colour rect_colour print
       
     else  
-        print_points list_positions width height axis_colour background_colour circle_colour
+        print_points list_positions unfolded_undeterministic_program width height axis_colour background_colour circle_colour print
 
   | "3" ->
     let stair_program = create_stair_program width height in
+    let unfolded_stair_program = unfold_repeat stair_program in
     let list_positions = run stair_program (point 0. 0.) in
     if !abs_specified then 
       let list_positions_rect = run_rect stair_program rect in
@@ -263,10 +338,10 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
         let combined = List.combine list_positions list_positions_rect in
         print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
       else 
-        print_rectangles list_positions_rect width height axis_colour background_colour rect_colour
+        print_rectangles list_positions_rect unfolded_stair_program width height axis_colour background_colour rect_colour print
       
     else  
-        print_points list_positions width height axis_colour background_colour circle_colour
+        print_points list_positions unfolded_stair_program width height axis_colour background_colour circle_colour print
 
   | _ -> failwith "prog must be 1, 2 or 3 ! "
 
@@ -282,6 +357,7 @@ let fc = ref (153, 0, 0)
 let rc = ref (7, 55, 99)
 let pc = ref (156, 167, 207)
 let size = ref (900, 900)
+let print = ref false
 
 (* Pour stocker l'argument obligatoire "prog" *)
 let prog = ref ""
@@ -353,6 +429,9 @@ let speclist = [
       Arg.Int (fun w -> let (_,h) = !size in size := (w,h));
       Arg.Int (fun h -> let (w,_) = !size in size := (w,h));
     ], "Set size w h");
+
+  ("-print", Arg.Set print, "Enable -print option");
+  
 ]
 
 exception OriginNotInRectangle of string
@@ -413,7 +492,7 @@ let _ =
 
   draw_axis width height axis_colour;
   
-  choose_prog width height abs abs_specified cr axis_colour background_colour circle_colour rect_colour prog;
+  choose_prog width height abs abs_specified cr axis_colour background_colour circle_colour rect_colour prog print;
 
   (*print_rectangles list_position_prog_stairs width height axis_colour background_colour rect_colour;
   print_points_rects combined width height axis_colour background_colour rect_colour circle_colour;
