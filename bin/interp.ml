@@ -188,64 +188,37 @@ let create_spiral width height =
     let create_stair_program width height =
       let float_width = float_of_int width in
       let float_height = float_of_int height in
+      
+      let x_unit = float_width /. 60. in 
+      let y_unit = float_height /. 60. in  
         
-      (* Adjust the movement units based on the window's width and height *)
-      let x_unit = float_width /. 60. in  (* Adjusted unit for horizontal movement *)
-      let y_unit = float_height /. 60. in  (* Adjusted unit for vertical movement *)
+      let steps = 4 in 
         
-      (* Define the step size to move 4 steps at a time in each direction to ensure it stays inside the window *)
-      let steps = 4 in  (* Adjusted number of steps per movement before rotating *)
-        
-      (* Define the movements along the diagonals and rotations *)
-      let step_up_left = Move(Translate { x = x_unit; y = (-.y_unit) }) in  (* Move along y = -x from bottom-right to top-left *)
-      let step_down_left = Move(Translate { x = (-.x_unit); y = (-.y_unit) }) in  (* Move along y = -x from top-left to bottom-left *)
-      let step_down_right = Move(Translate { x = (-.x_unit); y = y_unit }) in  (* Move along y = x from bottom-left to bottom-right *)
-      let step_up_right = Move(Translate { x = x_unit; y = y_unit }) in  (* Move along y = x from top-right to top-left *)
-        
-      (* Define the rotations to switch quadrants *)
+      let step_up_left = Move(Translate { x = x_unit; y = (-.y_unit) }) in 
+      let step_down_left = Move(Translate { x = (-.x_unit); y = (-.y_unit) }) in 
+      let step_down_right = Move(Translate { x = (-.x_unit); y = y_unit }) in 
+      let step_up_right = Move(Translate { x = x_unit; y = y_unit }) in 
+
       let rot1 = Move (Rotate ({x = 0. ; y = 0.}, -90.)) in
       let rot2 = Move (Rotate ({x = 0. ; y = 0.}, -90.)) in
       let rot3 = Move (Rotate ({x = 0. ; y = 0.}, -90.)) in
       let rot4 = Move (Rotate ({x = 0. ; y = 0.}, 180.)) in
         
       [
-        (* First move along y = -x axis (bottom-right to top-left) *)
+
         Repeat (steps, [step_up_left]);
-        rot1;  (* Rotate 90 degrees to move along y = x in the second quadrant *)
-    
-        (* Second move along y = -x axis (top-left to bottom-left) *)
+        rot1; 
+
         Repeat (steps, [step_down_left]);
-        rot2;  (* Rotate 90 degrees to move along y = x in the third quadrant *)
-    
-        (* Third move along y = x axis (bottom-left to bottom-right) *)
+        rot2;
+        
         Repeat (steps, [step_down_right]);
-        rot3;  (* Rotate 90 degrees to move along y = -x in the fourth quadrant *)
-    
-        (* Fourth move along y = x axis (top-right to top-left) *)
+        rot3;  
+
         Repeat (steps, [step_up_right]);
-        rot4;  (* Rotate 180 degrees to complete the cycle *)
+        rot4; 
       ]
     
-    
-
-(* Création d'un rectangle pour la spirale *)
-(*let create_rectangle_spiral width =
-  let float_width = float_of_int width in
-  let rect_width = float_width /. 30. in
-  let rect_height = rect_width /. 2. in
-  rectangle 0. rect_width 0. rect_height*)
-
-(* Programmes de spirale *)
-
-
-(*let flatten_positions_prog_1_point = List.flatten list_positions_prog_1_point
-let flatten_positions_prog_1 = List.flatten list_positions_prog_1*)
-(*let combined = List.combine list_positions_prog_1_point list_positions_prog_1
-
-let undeterministic_program = create_undeterministic_program 900 900
-let list_positions_prog_2 = run_rect undeterministic_program spiral_rect
-let stair_program = create_stair_program 900 900 300 150
-let list_position_prog_stairs = run_rect stair_program spiral_rect*)
 
 let choose_prog width height abs abs_specified cr axis_colour background_colour circle_colour rect_colour prog =
   let (x_min , y_min, x_max, y_max) = !abs in
