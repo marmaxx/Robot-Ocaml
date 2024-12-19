@@ -73,6 +73,7 @@ let rec run_det (prog : program) (p : point) : point list =
 (* FIN DU PREMIER JALON *)
 
 (* Fonction simulant une exécution possible d'un programme quelconque *)
+
 let run (prog : program) (p : point) : point list =
   let unfolded_prog = unfold_repeat prog in (* On déplie le programme pour ne plus avoir de Repeat *)
   (* Fonction auxiliaire qui calcule chaque position atteinte par l'instruction courante *)
