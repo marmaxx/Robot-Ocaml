@@ -355,10 +355,15 @@ let speclist = [
     ], "Set size w h");
 ]
 
+exception OriginNotInRectangle of string
+
 let has_origin x_min y_min x_max y_max = 
   let rect = rectangle x_min y_min x_max y_max in 
   let point = point 0. 0. in 
-  in_rectangle rect point
+  if not (in_rectangle rect point) then
+    raise (OriginNotInRectangle "Origin (0,0) is outside the specified rectangle.")
+  else
+    true
 
 let _ = 
   (* Pour l'instant la hauteur et largeur de la fenêtre sont paramétrées manuellement, 
