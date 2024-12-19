@@ -49,7 +49,7 @@ let rec print_rectangles rects width height axis_colour background_colour rect_c
   | [] -> ()
   | h :: t -> 
       print_rectangle h width height rect_colour;
-      Unix.sleep 1;
+      Unix.sleepf 0.5;
       clear_graph ();
       fill_background width height background_colour;
       draw_axis width height axis_colour ;
@@ -67,7 +67,7 @@ let rec print_points points width height axis_colour background_colour point_col
   | [] -> ()
   | h :: t -> 
       print_point h width height point_colour;
-      Unix.sleep 1;
+      Unix.sleepf 0.5;
       clear_graph ();
       fill_background width height background_colour;
       draw_axis width height axis_colour;
@@ -93,7 +93,7 @@ let rec print_points_rects  combined width height axis_colour background_colour 
   | [] -> ()
   | h :: t -> 
       print_point_rect h width height rect_colour point_colour;
-      Unix.sleep 1;
+      Unix.sleepf 0.5;
       clear_graph ();
       fill_background width height background_colour;
       draw_axis width height axis_colour;
@@ -161,39 +161,71 @@ let create_stair_program width height rect_width rect_height =
   ]
 
 (* Création d'un rectangle pour la spirale *)
-let create_rectangle_spiral width =
+(*let create_rectangle_spiral width =
   let float_width = float_of_int width in
   let rect_width = float_width /. 30. in
   let rect_height = rect_width /. 2. in
-  rectangle 0. rect_width 0. rect_height
+  rectangle 0. rect_width 0. rect_height*)
 
 (* Programmes de spirale *)
-let spiral_program = create_spiral 900 900 
-let spiral_rect = create_rectangle_spiral 900
-let list_positions_prog_1 = run_rect spiral_program spiral_rect
-let list_positions_prog_1_point = run spiral_program (point 0. 0.)
+
+
 (*let flatten_positions_prog_1_point = List.flatten list_positions_prog_1_point
 let flatten_positions_prog_1 = List.flatten list_positions_prog_1*)
-let combined = List.combine list_positions_prog_1_point list_positions_prog_1
+(*let combined = List.combine list_positions_prog_1_point list_positions_prog_1
 
 let undeterministic_program = create_undeterministic_program 900 900
 let list_positions_prog_2 = run_rect undeterministic_program spiral_rect
 let stair_program = create_stair_program 900 900 300 150
-let list_position_prog_stairs = run_rect stair_program spiral_rect
+let list_position_prog_stairs = run_rect stair_program spiral_rect*)
 
-(*let choose_prog width height abs cr axis_colour background_colour circle_colour rect_colour prog =
+let choose_prog width height abs abs_specified cr axis_colour background_colour circle_colour rect_colour prog =
   let (x_min , y_min, x_max, y_max) = !abs in
   let rect = rectangle x_min y_min x_max y_max in
-  match prog with 
+  match !prog with 
   | "1" ->  
-    if !cr then 
-      if !abs_specified then print_points_rects list_positions_prog_1 width height axis_colour background_colour rect_colour circle_colour
+    let spiral_program = create_spiral width height in
+    let list_positions = run spiral_program (point 0. 0.) in
+    if !abs_specified then 
+      let list_positions_rect = run_rect spiral_program rect in
+      if !cr then 
+        let combined = List.combine list_positions list_positions_rect in
+        print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
+      else 
+        print_rectangles list_positions_rect width height axis_colour background_colour rect_colour
+      
+    else  
+        print_points list_positions width height axis_colour background_colour circle_colour
 
   | "2" -> 
+    let undeterministic_program = create_undeterministic_program width height in
+    let list_positions = run undeterministic_program (point 0. 0.) in
+    if !abs_specified then 
+      let list_positions_rect = run_rect undeterministic_program rect in
+      if !cr then 
+        let combined = List.combine list_positions list_positions_rect in
+        print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
+      else 
+        print_rectangles list_positions_rect width height axis_colour background_colour rect_colour
+      
+    else  
+        print_points list_positions width height axis_colour background_colour circle_colour
 
   | "3" ->
+    let stair_program = create_stair_program width height 300 150 in
+    let list_positions = run stair_program (point 0. 0.) in
+    if !abs_specified then 
+      let list_positions_rect = run_rect stair_program rect in
+      if !cr then 
+        let combined = List.combine list_positions list_positions_rect in
+        print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
+      else 
+        print_rectangles list_positions_rect width height axis_colour background_colour rect_colour
+      
+    else  
+        print_points list_positions width height axis_colour background_colour circle_colour
 
-  | _ -> failwith "prog must be 1, 2 or 3 ! "*)
+  | _ -> failwith "prog must be 1, 2 or 3 ! "
 
 let verbose = ref false
 let output_file = ref ""
@@ -333,13 +365,13 @@ let _ =
 
   draw_axis width height axis_colour;
   
-  (* il faut utiliser la focntion choose_prog ici *)
+  choose_prog width height abs abs_specified cr axis_colour background_colour circle_colour rect_colour prog;
 
-  print_rectangles list_position_prog_stairs width height axis_colour background_colour rect_colour;
+  (*print_rectangles list_position_prog_stairs width height axis_colour background_colour rect_colour;
   print_points_rects combined width height axis_colour background_colour rect_colour circle_colour;
   print_rectangles list_positions_prog_2 width height axis_colour background_colour rect_colour;
-  print_points list_positions_prog_1_point width height axis_colour background_colour circle_colour;
-  print_rectangles list_positions_prog_1 width height axis_colour background_colour rect_colour;
+  print_points list_positions_prog_1_point width height axis_colour background_colour circle_colour;*)
+  
   
   ignore (read_line ()); (* Permet que la fenêtre ne se ferme pas toute seule, elle attend que l'utilisateur appuie sur Entrée dans le terminal *)
   close_graph ()
