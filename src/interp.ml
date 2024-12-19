@@ -36,7 +36,9 @@ let rec unfold_repeat (prog : program) : program =
   | Repeat (i,p) :: rest -> (expand_repeat i p) @ (unfold_repeat rest) (* On utilise la fonction auxiliaire *)
   (* | Either _ :: _ -> raise EitherEncountered (* Exception levée lorssque l'on rencontre un Either *) *)
     (* On gère maintenant le cas du Either en dépliant les possibles Repeat à l'intérieur du Either *)
-  | Either (first_prog, second_prog) :: rest -> Either (unfold_repeat first_prog, unfold_repeat second_prog) :: rest
+  | Either (first_prog, second_prog) :: rest -> 
+    Either (unfold_repeat first_prog, unfold_repeat second_prog) :: unfold_repeat rest
+  
 
 (* Fonction qui renvoie une liste de toutes les positions visitées par le robot durant l'exécution 
    du programme détermininiste en paramètre*)
@@ -47,7 +49,7 @@ let rec run_det (prog : program) (p : point) : point list =
     match prog with
     | [] -> List.rev visited_points
     | Either _ :: _ -> raise EitherEncountered (* Exception levée lorsque l'on rencontre un Either *)
-    | Repeat _ :: _ -> failwith "error in unfold_repeat" (* Inutile mais doit être présent sinon problème à la compilation *)
+    | Repeat _ :: _ -> failwith "error in unfold_repeat in run_det" (* Inutile mais doit être présent sinon problème à la compilation *)
     | Move t :: rest ->
         let new_point =
           match t with (* Calcul de la nouvelle position en fonction de si l'instruction est une translation ou une rotation *)
@@ -82,7 +84,7 @@ let run (prog : program) (p : point) : point list =
       (* On choisit un des deux programmes du Either en fonction de la valeur de notre random *)
       let chosen_prog = if random then first_prog else second_prog in
       execute_program (chosen_prog @ rest) current_point visited_points
-    | Repeat _ :: _ -> failwith "error in unfold_repeat" (* Toujours inutile mais nécessaire pour la compilation *)
+    | Repeat _ :: _ -> failwith "error in unfold_repeat in run" (* Toujours inutile mais nécessaire pour la compilation *)
     | Move t :: rest ->
         let new_point =
           match t with (* Calcul de la nouvelle position en fonction de si l'instruction est une translation ou une rotation *)

@@ -104,9 +104,10 @@ let rec print_points_rects  combined width height axis_colour background_colour 
 let create_spiral width height =
   let float_width = float_of_int width in
   let float_height = float_of_int height in
-  let rect_width = float_width /. 30. in
-  let x_unit = rect_width /. 2. in
-  let y_unit = float_height /. 60. in
+  (*let rect_width = rect.x_max -. rect.x_min in
+  let rect_height = rect.y_max -. rect.y_min in*)
+  let x_unit = float_width /. 198. in
+  let y_unit = float_height /. 204. in
   let up = Move (Translate { x = 0.; y = (-.y_unit) }) in
   let right = Move (Translate { x = x_unit; y = 0. }) in
   let down = Move (Translate { x = 0.; y = y_unit }) in
@@ -128,22 +129,44 @@ let create_spiral width height =
     Repeat (58, [right])
   ]
 
-let create_undeterministic_program width height =
-  let float_width = float_of_int width in
-  let float_height = float_of_int height in
-  let rect_width = float_width /. 30. in
-  let x_unit = rect_width /. 2. in
-  let y_unit = float_height /. 60. in
-  let up = Move (Translate { x = 0.; y = (-.y_unit) }) in
-  let right = Move (Translate { x = x_unit; y = 0. }) in
-  let down = Move (Translate { x = 0.; y = y_unit }) in
-  let left = Move (Translate { x = (-.x_unit); y = 0. }) in
-  let rot1 = Move (Rotate ({x = 0.; y = 0.}, 90.)) in
-  [
-    Either ([up], [down]) ; rot1 ; Either ([left], [right]) ; rot1
-  ]
+  let create_undeterministic_program width height =
+    let float_width = float_of_int width in
+    let float_height = float_of_int height in
+    let rect_width = float_width /. 15. in 
+    let rect_height = float_height /. 15. in
+    let x_unit = rect_width /. 2. in
+    let y_unit = rect_height /. 2. in
+  
+    let up_large = Move (Translate { x = 0.; y = (-.2. *. y_unit) }) in
+    let down_large = Move (Translate { x = 0.; y = 2. *. y_unit }) in
+    let left_large = Move (Translate { x = (-.2. *. x_unit); y = 0. }) in
+    let right_large = Move (Translate { x = 2. *. x_unit; y = 0. }) in
+  
+    let up = Move (Translate { x = 0.; y = (-.y_unit) }) in
+    let down = Move (Translate { x = 0.; y = y_unit }) in
+    let left = Move (Translate { x = (-.x_unit); y = 0. }) in
+    let right = Move (Translate { x = x_unit; y = 0. }) in
+  
+    let rot1 = Move (Rotate ({x = 0.; y = 0.}, 45.)) in
+    let rot2 = Move (Rotate ({x = 0.; y = 0.}, -45.)) in
+    let rot3 = Move (Rotate ({x = 0.; y = 0.}, 90.)) in
+    let rot4 = Move (Rotate ({x = 0.; y = 0.}, -90.)) in
+  
+    [
+      Either ([up_large; rot1; right_large], [down_large; rot2; left_large]);
+      Either ([right; rot3; up], [left; rot4; down]);
+      Repeat (3, [up; right; down; left]);
+      Either ([rot1; up_large; right_large], [rot2; down_large; left_large]);
+      Either ([rot3; right_large; up_large], [rot4; left_large; down_large]);
+      Repeat (2, [up; left; down; right]);
+      Either ([right_large; rot1; down_large], [left_large; rot2; up_large])
+    ]
+  
+  
+  
+  
 
-let create_stair_program width height rect_width rect_height =
+let create_stair_program width height rect_height rect_width =
   let float_width = float_of_int width in
   let float_height = float_of_int height in
   let float_rect_width = float_of_int rect_width in
@@ -153,7 +176,7 @@ let create_stair_program width height rect_width rect_height =
   let repeat_side = float_width /. float_rect_width in
   let repeat_side_int = int_of_float repeat_side in
   let one_step_up = Move(Translate { x = 1. ; y = 1.}) in
-  let rot1 = Move (Rotate ({x = 0. ; y = 0.}, 90.)) in
+  let rot1 = Move (Rotate ({x = 0. ; y = 0.}, 45.)) in
   [
     Repeat(repeat_up_int, [one_step_up]);
     rot1;
@@ -198,12 +221,14 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
         print_points list_positions width height axis_colour background_colour circle_colour
 
   | "2" -> 
+    Printf.printf("in case 2\n");
     let undeterministic_program = create_undeterministic_program width height in
     let list_positions = run undeterministic_program (point 0. 0.) in
     if !abs_specified then 
       let list_positions_rect = run_rect undeterministic_program rect in
       if !cr then 
         let combined = List.combine list_positions list_positions_rect in
+        Printf.printf("managed to combine lists\n");
         print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
       else 
         print_rectangles list_positions_rect width height axis_colour background_colour rect_colour
@@ -266,7 +291,7 @@ let usage_msg = "Usage: dune exec -- interp [options] prog\n
                 -size W H -> la dimension de la fenêtre en pixels\n"
 
 let update_abs (x_min, y_min, x_max, y_max) =
-  abs := (x_min, y_min, x_max, y_max);
+  abs := (x_min, y_min, -.x_max, y_max);
   abs_specified := true
 
 (* Liste des options *)
@@ -276,7 +301,7 @@ let speclist = [
   ("-abs", Arg.Tuple [
     Arg.Float (fun x_min -> let (_ , y_min, x_max, y_max) = !abs in update_abs (x_min, y_min, x_max, y_max));
     Arg.Float (fun y_min -> let (x_min , _, x_max, y_max) = !abs in update_abs (x_min, y_min, x_max, y_max));
-    Arg.Float (fun x_max -> let (x_min , y_min, _, y_max) = !abs in update_abs (x_min, y_min, x_max, y_max));
+    Arg.Float (fun x_max -> let (x_min , y_min, _, y_max) = !abs in update_abs (x_min, y_min, -.x_max, y_max));
     Arg.Float (fun y_max -> let (x_min , y_min, x_max, _) = !abs in update_abs (x_min, y_min, x_max, y_max));
   ], "Set abs values");
 
