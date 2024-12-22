@@ -86,16 +86,42 @@ let run_rect_with_instructions (prog : program) (r : rectangle) : (rectangle * i
             (*ajout rectangle plus instruction*)
             execute_program rest new_rect ((new_rect, new_instruction) :: visited_rectangles_and_instructions)
       in
-      execute_program unfolded_prog r [] 
+      execute_program unfolded_prog r [r, Move (Translate {x = 0.0; y = 0.0})] 
 
 (* Impression d'un rectangle simple avec coordonnées ajustées par rapport à la taille de la fenêtre *)
 let print_rectangle rect width height rect_colour =
   set_color rect_colour;
   fill_rect 
     ((width / 2) + (i rect.x_min))
-    ((height / 2) - (i rect.y_min)) 
-    ((i rect.x_max) - (i rect.x_min)) 
+    ((height / 2) - (i rect.y_max)) 
+     ((i rect.x_max) - (i rect.x_min))
     ((i rect.y_max) - (i rect.y_min)) 
+
+let print_target rect width height =
+  let target_colour = rgb 153 0 0 in
+  set_color target_colour;
+  fill_rect 
+    ((width / 2) + (i rect.x_min))
+    ((height / 2) - (i rect.y_max)) 
+    ((i rect.x_max) - (i rect.x_min))
+    ((i rect.y_max) - (i rect.y_min))  ;
+  let move_string = "TARGET !" in
+  moveto ( ((width / 2) + (i rect.x_min)) + 10) ( (height / 2) - (i rect.y_min) + 10);
+  draw_string move_string
+
+let print_victory width height =
+  let move_string = "TARGET REACHED!" in
+  moveto  ((width / 2) - (width / 4)) ( (height / 2) - (height/4));
+  draw_string move_string
+
+  let print_defeat width height =
+    let move_string = "TARGET MISSED!" in
+    moveto  ((width / 2) - (width / 4)) ( (height / 2) - (height/4));
+    draw_string move_string
+  let print_ready width height =
+    let move_string = "ROBOT READY TO GO!" in
+    moveto  ((width / 2) - (width / 4)) ( (height / 2) - (height/4));
+    draw_string move_string
 
 (* Impression des états d'un programme en fonction de la taille de la fenêtre *)
 let rec print_rectangles rectangles  width height axis_colour background_colour point_colour = 
@@ -182,10 +208,10 @@ let rec print_points points width height axis_colour background_colour point_col
 let print_point_rect (point, rect) width height rect_colour point_colour =
   set_color rect_colour;
   fill_rect 
-    ((width / 2) + (i  rect.x_min))
-    ((height / 2) - (i rect.y_min)) 
-    ((i rect.x_max) - (i rect.x_min)) 
-    ((i rect.y_max) - (i rect.y_min));
+    ((width / 2) + (i rect.x_min))
+    ((height / 2) - (i rect.y_max)) 
+     ((i rect.x_max) - (i rect.x_min))
+    ((i rect.y_max) - (i rect.y_min)) ;
     set_color point_colour;
     fill_circle
     ((width / 2) + i point.x)
@@ -210,10 +236,10 @@ let print_point_rect_instruction ((point, instruction1), (rect, instruction2)) w
         print_instruction instruction2 10 10 true;
         set_color rect_colour;
         fill_rect 
-          ((width / 2) + (int_of_float rect.x_min))  
-          ((height / 2) - (int_of_float rect.y_min)) 
-          ((int_of_float rect.x_max) - (int_of_float rect.x_min)) 
-          ((int_of_float rect.y_max) - (int_of_float rect.y_min));
+          ((width / 2) + (i rect.x_min))
+          ((height / 2) - (i rect.y_max)) 
+          ((i rect.x_max) - (i rect.x_min))
+          ((i rect.y_max) - (i rect.y_min)) ;
         set_color point_colour;
         fill_circle
           ((width / 2) + (int_of_float point.x))   
@@ -350,20 +376,33 @@ let create_spiral width height =
     
 (*fonction principale qui lance le bon programme avec les bonnes options*)
 let choose_prog width height abs abs_specified cr axis_colour background_colour circle_colour rect_colour prog print =
-  let (x_min , y_min, x_max, y_max) = !abs in
-  let rect = rectangle x_min y_min x_max y_max in
+  let (x_min , y_min , x_max , y_max) = !abs in
+  let rect = rectangle x_min x_max y_min y_max in
+  print_ready width height;
+  Unix.sleep 2;
   
   match !prog with 
   | "1" -> 
     let spiral_program = create_spiral width height in
     let list_positions = run spiral_program (point 0. 0.) in
     let list_positions_instructions = run_with_instructions spiral_program (point 0. 0.) in
+    let x_min = (float_of_int width /. 2.) -. (float_of_int width /. 8.) in
+    let y_min =  (float_of_int height /. 2.) -. (float_of_int width /. 16.) in
+    let x_max = (float_of_int width /. 2.) in
+    let y_max = (float_of_int height /. 2.) in
+    let target = rectangle x_min x_max y_min y_max in
+    print_target target width height;
+    Unix.sleep 2;
     if !print then 
       if !abs_specified then 
         let list_positions_rect_instructions = run_rect_with_instructions spiral_program rect in
         if !cr then 
-          let double_combined = List.combine (List.tl list_positions_instructions) list_positions_rect_instructions in
-          print_points_rects_instructions double_combined width height axis_colour background_colour rect_colour circle_colour
+          let double_combined = List.combine list_positions_instructions list_positions_rect_instructions in
+          print_points_rects_instructions double_combined width height axis_colour background_colour rect_colour circle_colour;
+          if feasible_target_reached spiral_program rect target then 
+            print_victory width height
+          else 
+            print_defeat width height
         else 
           print_rectangles_instructions list_positions_rect_instructions width height axis_colour background_colour rect_colour
       else  
@@ -385,14 +424,24 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
     let undeterministic_program = create_undeterministic_program width height in
     let list_positions = run undeterministic_program (point 0. 0.) in
     let list_positions_instructions = run_with_instructions undeterministic_program (point 0. 0.) in
-    Printf.printf "length of positons = %d\n" (List.length list_positions_instructions);
+    let x_min = (2. /. 30.) *.  (float_of_int width) in
+    let y_min =  (-7. /. 30.) *. (float_of_int height) in
+    let x_max = (4. /. 30.) *. (float_of_int width) in
+    let y_max = (-5. /. 30.) *. (float_of_int height) in
+    let target = rectangle x_min x_max y_min y_max in
+    print_target target width height;
+    Unix.sleep 2;
     if !print then 
       if !abs_specified then 
         let list_positions_rect_instructions = run_rect_with_instructions undeterministic_program rect in
-        Printf.printf "length of rect = %d\n" (List.length list_positions_rect_instructions);
         if !cr then 
-          let double_combined = List.combine (List.tl list_positions_instructions) list_positions_rect_instructions in
-          print_points_rects_instructions double_combined width height axis_colour background_colour rect_colour circle_colour
+          let double_combined = List.combine  list_positions_instructions list_positions_rect_instructions in
+          print_points_rects_instructions double_combined width height axis_colour background_colour rect_colour circle_colour;
+          if feasible_target_reached undeterministic_program rect target then 
+            print_victory width height
+          else 
+            print_defeat width height
+          
         else 
           print_rectangles_instructions list_positions_rect_instructions  width height axis_colour background_colour rect_colour
         
@@ -404,7 +453,6 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
         let list_positions_rect = run_rect undeterministic_program rect in
         if !cr then 
           let combined = List.combine list_positions list_positions_rect in
-          Printf.printf("managed to combine lists\n");
           print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
         else 
           print_rectangles list_positions_rect  width height axis_colour background_colour rect_colour 
@@ -420,7 +468,7 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
             if !abs_specified then 
               let list_positions_rect_instructions = run_rect_with_instructions stair_program rect in
               if !cr then 
-                let double_combined = List.combine (List.tl list_positions_instructions) list_positions_rect_instructions in
+                let double_combined = List.combine list_positions_instructions list_positions_rect_instructions in
           print_points_rects_instructions double_combined width height axis_colour background_colour rect_colour circle_colour
               else 
                 print_rectangles_instructions list_positions_rect_instructions width height axis_colour background_colour rect_colour
@@ -481,7 +529,7 @@ let usage_msg = "Usage: dune exec -- interp [options] prog\n
                 -size W H -> la dimension de la fenêtre en pixels\n"
 
 let update_abs (x_min, y_min, x_max, y_max) =
-  abs := (x_min, y_min, -.x_max, y_max);
+  abs := (x_min, y_min, x_max, y_max);  
   abs_specified := true
 
 (* Liste des options *)
@@ -489,10 +537,10 @@ let speclist = [
   ("-cr", Arg.Set cr, "Enable -cr option");
 
   ("-abs", Arg.Tuple [
-    Arg.Float (fun x_min -> let (_ , y_min, x_max, y_max) = !abs in update_abs (x_min, y_min, x_max, y_max));
-    Arg.Float (fun y_min -> let (x_min , _, x_max, y_max) = !abs in update_abs (x_min, y_min, x_max, y_max));
-    Arg.Float (fun x_max -> let (x_min , y_min, _, y_max) = !abs in update_abs (x_min, y_min, -.x_max, y_max));
-    Arg.Float (fun y_max -> let (x_min , y_min, x_max, _) = !abs in update_abs (x_min, y_min, x_max, y_max));
+    Arg.Float (fun x_min -> let (_ , y_min, x_max, y_max) = !abs in update_abs (x_min, y_min, x_max, y_max));  
+    Arg.Float (fun y_min -> let (x_min , _, x_max, y_max) = !abs in update_abs (x_min, y_min, x_max, y_max));  
+    Arg.Float (fun x_max -> let (x_min , y_min, _, y_max) = !abs in update_abs (x_min, y_min, x_max, y_max));  
+    Arg.Float (fun y_max -> let (x_min , y_min, x_max, _) = !abs in update_abs (x_min, y_min, x_max, y_max));  
   ], "Set abs values");
 
   ("-abs", Arg.Unit (fun () -> abs_specified := true), "Indicates if -abs option was specified");
@@ -533,7 +581,7 @@ let speclist = [
 exception OriginNotInRectangle of string
 
 let has_origin x_min y_min x_max y_max = 
-  let rect = rectangle x_min y_min x_max y_max in 
+  let rect = rectangle x_min x_max y_min y_max in 
   let point = point 0. 0. in 
   if not (in_rectangle rect point) then
     raise (OriginNotInRectangle "Origin (0,0) is outside the specified rectangle.")
