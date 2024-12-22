@@ -404,7 +404,11 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
           else 
             print_defeat width height
         else 
-          print_rectangles_instructions list_positions_rect_instructions width height axis_colour background_colour rect_colour
+          print_rectangles_instructions list_positions_rect_instructions width height axis_colour background_colour rect_colour;
+          if target_reached_rect spiral_program rect target then 
+            print_victory width height
+          else 
+            print_defeat width height
       else  
           print_points_instructions list_positions_instructions width height axis_colour background_colour circle_colour
     else
@@ -412,12 +416,23 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
         let list_positions_rect = run_rect spiral_program rect in
         if !cr then 
           let combined = List.combine list_positions list_positions_rect in
-          Printf.printf("managed to combine lists\n");
-          print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
+          print_points_rects combined width height axis_colour background_colour rect_colour circle_colour;
+          if feasible_target_reached spiral_program rect target then 
+            print_victory width height
+          else 
+            print_defeat width height
         else 
-          print_rectangles list_positions_rect  width height axis_colour background_colour rect_colour 
+          print_rectangles list_positions_rect  width height axis_colour background_colour rect_colour;
+          if target_reached_rect spiral_program rect target then 
+            print_victory width height
+          else 
+            print_defeat width height 
       else  
-          print_points list_positions  width height axis_colour background_colour circle_colour 
+          print_points list_positions  width height axis_colour background_colour circle_colour;
+          if target_reached spiral_program (point 0. 0.) target then 
+            print_victory width height
+          else 
+            print_defeat width height 
 
 
   | "2" -> 
@@ -443,48 +458,95 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
             print_defeat width height
           
         else 
-          print_rectangles_instructions list_positions_rect_instructions  width height axis_colour background_colour rect_colour
+          print_rectangles_instructions list_positions_rect_instructions  width height axis_colour background_colour rect_colour;
+          if target_reached_rect undeterministic_program rect target then 
+            print_victory width height
+          else 
+            print_defeat width height
         
       else  
           print_points_instructions list_positions_instructions width height axis_colour background_colour circle_colour
+          (*if target_reached undeterministic_program (point 0. 0.) target then 
+            print_victory width height
+          else 
+            print_defeat width height*)
 
     else
       if !abs_specified then 
         let list_positions_rect = run_rect undeterministic_program rect in
         if !cr then 
           let combined = List.combine list_positions list_positions_rect in
-          print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
+          print_points_rects combined width height axis_colour background_colour rect_colour circle_colour;
+          if target_reached_rect undeterministic_program rect target then 
+            print_victory width height
+          else 
+            print_defeat width height
         else 
-          print_rectangles list_positions_rect  width height axis_colour background_colour rect_colour 
+          print_rectangles list_positions_rect  width height axis_colour background_colour rect_colour;
+          if target_reached_rect undeterministic_program rect target then 
+            print_victory width height
+          else 
+            print_defeat width height 
         
       else  
-          print_points list_positions  width height axis_colour background_colour circle_colour 
+          print_points list_positions  width height axis_colour background_colour circle_colour ;
+          if target_reached undeterministic_program (point 0. 0.) target then 
+            print_victory width height
+          else 
+            print_defeat width height
 
       | "3" -> 
           let stair_program = create_stair_program width height in
           let list_positions = run stair_program (point 0. 0.) in
           let list_positions_instructions = run_with_instructions stair_program (point 0. 0.) in
+          let x_min = (-10. /. 30.) *. (float_of_int width) in
+          let y_min = (-10. /. 30.) *. (float_of_int height) in
+          let x_max = 0. in
+          let y_max = 0. in
+          let target = rectangle x_min x_max y_min y_max in
+          print_target target width height;
+          Unix.sleep 2;
           if !print then 
             if !abs_specified then 
               let list_positions_rect_instructions = run_rect_with_instructions stair_program rect in
               if !cr then 
                 let double_combined = List.combine list_positions_instructions list_positions_rect_instructions in
-          print_points_rects_instructions double_combined width height axis_colour background_colour rect_colour circle_colour
+                print_points_rects_instructions double_combined width height axis_colour background_colour rect_colour circle_colour;
+                if feasible_target_reached stair_program rect target then 
+                  print_victory width height
+                else 
+                  print_defeat width height
               else 
-                print_rectangles_instructions list_positions_rect_instructions width height axis_colour background_colour rect_colour
+                print_rectangles_instructions list_positions_rect_instructions width height axis_colour background_colour rect_colour;
+                if target_reached_rect stair_program rect target then 
+                  print_victory width height
+                else 
+                  print_defeat width height
             else  
                 print_points_instructions list_positions_instructions width height axis_colour background_colour circle_colour
+    
           else
             if !abs_specified then 
               let list_positions_rect = run_rect stair_program rect in
               if !cr then 
                 let combined = List.combine list_positions list_positions_rect in
-                Printf.printf("managed to combine lists\n");
-                print_points_rects combined width height axis_colour background_colour rect_colour circle_colour
+                print_points_rects combined width height axis_colour background_colour rect_colour circle_colour;
+                if feasible_target_reached stair_program rect target then 
+                  print_victory width height
+                else 
+                  print_defeat width height
               else 
-                print_rectangles list_positions_rect  width height axis_colour background_colour rect_colour 
+                print_rectangles list_positions_rect  width height axis_colour background_colour rect_colour;
+                if target_reached_rect stair_program rect target then 
+                  print_victory width height
+                else 
+                  print_defeat width height 
             else  
-                print_points list_positions width height axis_colour background_colour circle_colour 
+                print_points list_positions width height axis_colour background_colour circle_colour ;
+                if target_reached stair_program (point 0. 0.) target then 
+                  print_victory width height
+                else 
+                  print_defeat width height
         
 
   | _ -> failwith "prog must be 1, 2 or 3 ! "
