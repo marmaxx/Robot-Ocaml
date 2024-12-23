@@ -3,7 +3,7 @@ open Geo
 (* Code de la Section 4 du projet. *)
 
 type instruction =
-  Move of transformation
+|  Move of transformation
 | Repeat of int * program
 | Either of program * program 
 and program = instruction list
@@ -38,13 +38,9 @@ let rec unfold_repeat (prog : program) : program =
     | Repeat (i, p) :: rest -> process_instructions rest (expand_repeat i p acc)
     (* | Either _ :: _ -> raise EitherEncountered (* Exception levée lorsque l'on rencontre un Either *) *)
     (* On gère maintenant le cas du Either en dépliant les possibles Repeat à l'intérieur du Either *)
-    | Either (first_prog, second_prog) :: rest ->
-        let unfolded_first = unfold_repeat first_prog in
-        let unfolded_second = unfold_repeat second_prog in
-        process_instructions rest (Either (unfolded_first, unfolded_second) :: acc)
-  in
-  process_instructions prog []
-
+  | Either (first_prog, second_prog) :: rest -> 
+    Either (unfold_repeat first_prog, unfold_repeat second_prog) :: unfold_repeat rest
+  
 
 (* Fonction qui renvoie une liste de toutes les positions visitées par le robot durant l'exécution 
    du programme détermininiste en paramètre*)
@@ -55,7 +51,7 @@ let rec run_det (prog : program) (p : point) : point list =
     match prog with
     | [] -> List.rev visited_points
     | Either _ :: _ -> raise EitherEncountered (* Exception levée lorsque l'on rencontre un Either *)
-    | Repeat _ :: _ -> failwith "error in unfold_repeat" (* Inutile mais doit être présent sinon problème à la compilation *)
+    | Repeat _ :: _ -> failwith "error in unfold_repeat in run_det" (* Inutile mais doit être présent sinon problème à la compilation *)
     | Move t :: rest ->
         let new_point =
           match t with (* Calcul de la nouvelle position en fonction de si l'instruction est une translation ou une rotation *)
@@ -77,6 +73,7 @@ let target_reached_det (prog : program) (p : point) (target : rectangle) : bool 
 in_rectangle target last_point (* On vérifie si ce point est dans le rectangle cible ou non *)
   
 (* Fonction simulant une exécution possible d'un programme quelconque *)
+
 let run (prog : program) (p : point) : point list =
   let unfolded_prog = unfold_repeat prog in (* On déplie le programme pour ne plus avoir de Repeat *)
   (* Fonction auxiliaire qui calcule chaque position atteinte par l'instruction courante *)
@@ -88,7 +85,7 @@ let run (prog : program) (p : point) : point list =
       (* On choisit un des deux programmes du Either en fonction de la valeur de notre random *)
       let chosen_prog = if random then first_prog else second_prog in
       execute_program (chosen_prog @ rest) current_point visited_points
-    | Repeat _ :: _ -> failwith "error in unfold_repeat" (* Toujours inutile mais nécessaire pour la compilation *)
+    | Repeat _ :: _ -> failwith "error in unfold_repeat in run" (* Toujours inutile mais nécessaire pour la compilation *)
     | Move t :: rest ->
         let new_point =
           match t with (* Calcul de la nouvelle position en fonction de si l'instruction est une translation ou une rotation *)

@@ -37,7 +37,7 @@ let run_rect (prog : program) (r : rectangle) : rectangle list =
       let random = Random.bool () in 
       let chosen_prog = if random then first_prog else second_prog in
       execute_program (chosen_prog @ rest) current_rectangle visited_rectangles
-    | Repeat _ :: _ -> failwith "error in unfold_repeat"
+    | Repeat _ :: _ -> failwith "error in unfold_repeat run_rect"
     | Move t :: rest ->
         (* On calcule le nouveau rectangle avec la fonction précèdente *)
         let new_rect = transform_rect t current_rectangle in
@@ -67,7 +67,7 @@ let run_polymorphe (transform : transformation -> 'a -> 'a) (prog : program) (i 
       let random = Random.bool () in 
       let chosen_prog = if random then first_prog else second_prog in
       execute_program (chosen_prog @ rest) current_object visited_objects
-    | Repeat _ :: _ -> failwith "error in unfold_repeat"
+    | Repeat _ :: _ -> failwith "error in unfold_repeat run polymorphe"
     | Move t :: rest ->
         let new_obj = transform t current_object in
         execute_program rest new_obj (new_obj :: visited_objects)
@@ -85,7 +85,7 @@ let rec over_approximate (prog : program) (r : rectangle) : rectangle =
       in let second_rect = execute_program second_prog current_rectangle approx_rectangle
       in let new_approx_rect = rectangle_of_list (corners first_rect @ corners second_rect)
       in execute_program rest new_approx_rect new_approx_rect
-    | Repeat _ :: _ -> failwith "error in unfold_repeat"
+    | Repeat _ :: _ -> failwith "error in unfold_repeat over approximate"
     | Move t :: rest ->
         let new_rect = transform_rect t approx_rectangle in
         execute_program rest new_rect new_rect
@@ -95,3 +95,5 @@ let rec over_approximate (prog : program) (r : rectangle) : rectangle =
 let feasible_target_reached (prog : program) (r : rectangle) (target : rectangle) : bool =
   let final_rect = over_approximate prog r 
   in inclusion final_rect target
+
+ 
