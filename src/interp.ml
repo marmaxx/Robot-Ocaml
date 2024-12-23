@@ -25,18 +25,16 @@ exception EitherEncountered;;
 
 (* Fonction qui déplie chaque instruction Repeat *)
 let rec unfold_repeat (prog : program) : program =
-  (* Fonction auxiliaire avec accumulateur pour dérouler n fois le sous-programme à l'intérieur du Repeat *)
-  let rec expand_repeat n sub_prog acc =
-    if n <= 0 then acc
-    else expand_repeat (n - 1) sub_prog (unfold_repeat sub_prog @ acc)
+  (* Fonction auxiliaire permettant de dérouler n fois le sous-programme à l'intérieur du Repeat *)
+  let rec expand_repeat n sub_prog = 
+    if n <= 0 then []
+    else (unfold_repeat sub_prog) @ (expand_repeat (n-1) sub_prog)
   in
-  (* Fonction principale avec accumulateur *)
-  let rec process_instructions prog acc =
-    match prog with
-    | [] -> List.rev acc (* On retourne le résultat dans le bon ordre *)
-    | Move t :: rest -> process_instructions rest (Move t :: acc)
-    | Repeat (i, p) :: rest -> process_instructions rest (expand_repeat i p acc)
-    (* | Either _ :: _ -> raise EitherEncountered (* Exception levée lorsque l'on rencontre un Either *) *)
+  match prog with 
+  | [] -> []
+  | Move t :: rest -> Move t :: unfold_repeat rest
+  | Repeat (i,p) :: rest -> (expand_repeat i p) @ (unfold_repeat rest) (* On utilise la fonction auxiliaire *)
+  (* | Either _ :: _ -> raise EitherEncountered (* Exception levée lorssque l'on rencontre un Either *) *)
     (* On gère maintenant le cas du Either en dépliant les possibles Repeat à l'intérieur du Either *)
   | Either (first_prog, second_prog) :: rest -> 
     Either (unfold_repeat first_prog, unfold_repeat second_prog) :: unfold_repeat rest
