@@ -92,7 +92,6 @@ let rec over_approximate (prog : program) (r : rectangle) : rectangle =
   in
   execute_program unfolded_prog r r
 
-
 let feasible_target_reached (prog : program) (r : rectangle) (target : rectangle) : bool =
   let final_rect = over_approximate prog r 
   in inclusion final_rect target
