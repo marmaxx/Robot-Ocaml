@@ -68,7 +68,7 @@ let rec print_instruction instruction origin_x origin_y is_rect =
     Printf.printf ")\n"
 
 
-(* TO DO A DEPLACER !*)
+(* dérouler un programme pour obtenir liste des instructions + rectangles *)
 let run_rect_with_instructions (prog : program) (r : rectangle) : (rectangle * instruction) list =
       let unfolded_prog = unfold_repeat prog in
       let rec execute_program prog current_rectangle visited_rectangles_and_instructions =
@@ -97,6 +97,7 @@ let print_rectangle rect width height rect_colour =
      ((i rect.x_max) - (i rect.x_min))
     ((i rect.y_max) - (i rect.y_min)) 
 
+(* impression de la cible (un rectangle mais avec du texte)*)
 let print_target rect width height =
   let target_colour = rgb 153 0 0 in
   set_color target_colour;
@@ -109,15 +110,19 @@ let print_target rect width height =
   moveto ( ((width / 2) + (i rect.x_min)) + 10) ( (height / 2) - (i rect.y_min) + 10);
   draw_string move_string
 
+(* si la cible est atteinte*)
 let print_victory width height =
   let move_string = "TARGET REACHED!" in
   moveto  ((width / 2) - (width / 4)) ( (height / 2) - (height/4));
   draw_string move_string
 
+(* si la cible n'est pas atteinte*)
   let print_defeat width height =
     let move_string = "TARGET MISSED!" in
     moveto  ((width / 2) - (width / 4)) ( (height / 2) - (height/4));
     draw_string move_string
+
+(* avant de lancer le programme *)
   let print_ready width height =
     let move_string = "ROBOT READY TO GO!" in
     moveto  ((width / 2) - (width / 4)) ( (height / 2) - (height/4));
@@ -153,7 +158,7 @@ let print_point point width height point_colour =
   set_color point_colour;
   fill_circle ((width / 2) + (i point.x)) ((height / 2) - (i point.y)) 4
 
-(* TO DO A DEPLACER DANS INTERP *)
+(* déroulé d'un programme avec retour de liste tuple points + instructions *)
 let run_with_instructions (prog : program) (p : point) : (point * instruction) list =
     let unfolded_prog = unfold_repeat prog in 
     (* Fonction auxiliaire qui calcule chaque position atteinte par l'instruction courante *)
@@ -245,7 +250,7 @@ let print_point_rect_instruction ((point, instruction1), (rect, instruction2)) w
           ((width / 2) + (int_of_float point.x))   
           ((height / 2) - (int_of_float point.y)) 4
      
-(*impression de tous les points et rectangles*)
+(*impression de tous les points et rectangles avec instructions *)
 let rec print_points_rects_instructions double_combined width height axis_colour background_colour rect_colour point_colour =
   match double_combined with
   | [] -> ()
@@ -258,7 +263,7 @@ let rec print_points_rects_instructions double_combined width height axis_colour
       print_points_rects_instructions t width height axis_colour background_colour rect_colour point_colour
       
 
-(* Création d'une spirale hyper classe *)
+(* programme déplacement en spirale selon sens horaire ou anti horaire*)
 let create_spiral width height =
   let float_width = float_of_int width in
   let float_height = float_of_int height in
@@ -339,6 +344,7 @@ let create_spiral width height =
       Either ([right_large; rot1; down_large], [left_large; rot2; up_large])
     ]
   
+(* troisième programme *)
 
     let create_stair_program width height =
       let float_width = float_of_int width in
@@ -393,6 +399,7 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
     let target = rectangle x_min x_max y_min y_max in
     print_target target width height;
     Unix.sleep 2;
+    (*deux déroulés différents en fonction de si l'option print est active ou non*)
     if !print then 
       if !abs_specified then 
         let list_positions_rect_instructions = run_rect_with_instructions spiral_program rect in
@@ -434,7 +441,7 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
           else 
             print_defeat width height 
 
-
+  (* les cas 2 et 3 respectent le même format *)
   | "2" -> 
     let undeterministic_program = create_undeterministic_program width height in
     let list_positions = run undeterministic_program (point 0. 0.) in
@@ -466,10 +473,6 @@ let choose_prog width height abs abs_specified cr axis_colour background_colour 
         
       else  
           print_points_instructions list_positions_instructions width height axis_colour background_colour circle_colour
-          (*if target_reached undeterministic_program (point 0. 0.) target then 
-            print_victory width height
-          else 
-            print_defeat width height*)
 
     else
       if !abs_specified then 
@@ -568,10 +571,6 @@ let print = ref false
 (* Pour stocker l'argument obligatoire "prog" *)
 let prog = ref ""
 
-(* Fonction pour les options de couleur 
-let set_color ref_color r g b =
-  ref_color := (r, g, b)*)
-
 (* Fonction pour les arguments anonymes *)
 let anon_fun arg =
   if !prog = "" then
@@ -588,7 +587,8 @@ let usage_msg = "Usage: dune exec -- interp [options] prog\n
                 -fc r v b -> couleur de l’avant plan\n
                 -rc r v b -> couleur du rectangle\n
                 -pc r v b -> couleur du point\n
-                -size W H -> la dimension de la fenêtre en pixels\n"
+                -size W H -> la dimension de la fenêtre en pixels\n
+                -print -> impression des instructions\n"
 
 let update_abs (x_min, y_min, x_max, y_max) =
   abs := (x_min, y_min, x_max, y_max);  
@@ -651,8 +651,6 @@ let has_origin x_min y_min x_max y_max =
     true
 
 let _ = 
-  (* Pour l'instant la hauteur et largeur de la fenêtre sont paramétrées manuellement, 
-      mais après on récupère ça par les options *)
   
   (* Parsing des arguments *)
   Arg.parse speclist anon_fun usage_msg;
